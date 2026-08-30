@@ -266,6 +266,12 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
 @media (prefers-color-scheme: dark){ .btn.primary{color:#0E1016} }
 .btn.danger{color:#9B2C2C;border-color:#E3C4C4}
 .note{font-size:calc(12px * var(--fs));color:var(--grey);line-height:1.6;margin-top:10px}
+.prev{width:100%;overflow-x:auto;border:1px solid var(--rule);margin-top:8px}
+.prev table{border-collapse:collapse;font-size:calc(12px * var(--fs));white-space:nowrap}
+.prev td,.prev th{border:1px solid var(--rule);padding:5px 8px;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.prev th{background:var(--band);padding:4px}
+.prev select{font-size:calc(12px * var(--fs));padding:3px 4px;border:1px solid var(--rule);border-radius:2px;background:var(--paper)}
+.prev tr:nth-child(even) td{background:var(--band)}
 .gchips{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px}
 .gchip{
   font-size:calc(12px * var(--fs));padding:5px 11px;border:1px solid var(--rule);border-radius:2px;color:var(--grey)
@@ -305,6 +311,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <div class="dicts" id="dicts"></div>
     <button class="ghost" id="openBtn">辞書を開く</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
+  <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
   </div>
   <div class="searchrow">
     <div class="field">
@@ -861,6 +868,139 @@ function buildDic(entries) {
     // trailing bytes stay zero, which is the end-of-block marker
   }
   return buf;
+}
+
+
+/* ------------------------------------------------------------------
+   Minimal .xlsx reader.
+   An xlsx is a ZIP of XML, and Safari can inflate with DecompressionStream,
+   so this needs no library and works offline.
+   ------------------------------------------------------------------ */
+
+async function inflateRaw(bytes) {
+  const ds = new DecompressionStream('deflate-raw');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/** Read a ZIP into a map of name -> bytes. */
+async function readZip(buf) {
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  // end of central directory
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 66000); i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('ZIP形式として読めません。Excelのファイルか確認してください。');
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  if (p === 0xffffffff) throw new Error('このExcelファイルは大きすぎます（ZIP64）。');
+
+  const out = new Map();
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const compSize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const cmtLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nameLen));
+    p += 46 + nameLen + extraLen + cmtLen;
+
+    const lNameLen = dv.getUint16(local + 26, true);
+    const lExtraLen = dv.getUint16(local + 28, true);
+    const start = local + 30 + lNameLen + lExtraLen;
+    const raw = buf.subarray(start, start + compSize);
+    out.set(name, { method, raw });
+  }
+  return {
+    names: [...out.keys()],
+    async get(name) {
+      const e = out.get(name);
+      if (!e) return null;
+      return e.method === 0 ? e.raw : await inflateRaw(e.raw);
+    },
+  };
+}
+
+function xmlDoc(bytes) {
+  return new DOMParser().parseFromString(new TextDecoder().decode(bytes), 'application/xml');
+}
+
+function colIndex(ref) {
+  let n = 0;
+  for (const ch of ref) {
+    const c = ch.charCodeAt(0);
+    if (c >= 65 && c <= 90) n = n * 26 + (c - 64);
+    else break;
+  }
+  return n - 1;
+}
+
+/** Parse an xlsx into [{ name, rows: string[][] }]. */
+async function parseXlsx(buf, maxRows = 20000) {
+  const zip = await readZip(buf);
+
+  const shared = [];
+  const ssBytes = await zip.get('xl/sharedStrings.xml');
+  if (ssBytes) {
+    for (const si of xmlDoc(ssBytes).getElementsByTagName('si')) {
+      let s = '';
+      for (const t of si.getElementsByTagName('t')) s += t.textContent;
+      shared.push(s);
+    }
+  }
+
+  // sheet name -> file, via the workbook relationships
+  const rels = {};
+  const relBytes = await zip.get('xl/_rels/workbook.xml.rels');
+  if (relBytes) {
+    for (const r of xmlDoc(relBytes).getElementsByTagName('Relationship')) {
+      rels[r.getAttribute('Id')] = r.getAttribute('Target');
+    }
+  }
+  const wbBytes = await zip.get('xl/workbook.xml');
+  if (!wbBytes) throw new Error('Excelのブックが見つかりません。');
+  const sheetDefs = [];
+  for (const sh of xmlDoc(wbBytes).getElementsByTagName('sheet')) {
+    const rid = sh.getAttribute('r:id') || sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+    let target = rels[rid] || '';
+    target = target.replace(/^\/xl\//, '').replace(/^\.\//, '');
+    if (!target) target = 'worksheets/sheet' + (sheetDefs.length + 1) + '.xml';
+    sheetDefs.push({ name: sh.getAttribute('name') || `シート${sheetDefs.length + 1}`, path: 'xl/' + target });
+  }
+  if (!sheetDefs.length) sheetDefs.push({ name: 'Sheet1', path: 'xl/worksheets/sheet1.xml' });
+
+  const sheets = [];
+  for (const def of sheetDefs) {
+    const bytes = await zip.get(def.path);
+    if (!bytes) continue;
+    const doc = xmlDoc(bytes);
+    const rows = [];
+    for (const row of doc.getElementsByTagName('row')) {
+      const cells = [];
+      for (const c of row.getElementsByTagName('c')) {
+        const at = colIndex(c.getAttribute('r') || '');
+        const type = c.getAttribute('t');
+        let v = '';
+        if (type === 'inlineStr') {
+          for (const t of c.getElementsByTagName('t')) v += t.textContent;
+        } else {
+          const vs = c.getElementsByTagName('v');
+          const raw = vs.length ? vs[0].textContent : '';
+          v = type === 's' ? (shared[+raw] ?? '') : raw;
+        }
+        cells[at >= 0 ? at : cells.length] = v;
+      }
+      for (let i = 0; i < cells.length; i++) if (cells[i] === undefined) cells[i] = '';
+      rows.push(cells);
+      if (rows.length >= maxRows) break;
+    }
+    while (rows.length && rows[rows.length - 1].every(c => !c)) rows.pop();
+    sheets.push({ name: def.name, rows });
+  }
+  return sheets;
 }
 
 
@@ -1789,7 +1929,8 @@ function openMine() {
       <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
       <button class="btn" id="x-csv">CSVで書き出す</button>
       <button class="btn" id="x-json">バックアップを書き出す</button>
-      <button class="btn" id="x-imp">読み込む</button>
+      <button class="btn" id="x-xlsx">Excelから読み込む</button>
+      <button class="btn" id="x-imp">貼り付けて読み込む</button>
     </div>
     <textarea class="out" id="x-out" readonly hidden></textarea>
     <div class="acts">
@@ -1837,6 +1978,8 @@ function openMine() {
     download(j, 'mydict-backup.json', 'utf8');
     show(j, 'この内容を保存しておけば、別の端末の「読み込む」で復元できます。');
   };
+  $('x-xlsx').onclick = () => $('xlsxFile').click();
+
   $('x-imp').onclick = () => {
     sheet(`<h2>マイ辞書を読み込む</h2>
       <div class="note">バックアップのJSON、または <code>見出し語,訳語</code> のCSVを貼り付けてください。今ある語に追加されます。</div>
@@ -1849,6 +1992,115 @@ function openMine() {
       if (!n) { toast('読み取れませんでした'); return; }
       await saveMine(); closeSheet(); updateStatus(); run(); toast(`${n}語を追加しました`);
     };
+  };
+}
+
+const FIELD_OPTS = [
+  ['', '使わない'], ['word', '見出し語'], ['trans', '訳語'],
+  ['example', '用例'], ['pron', '発音・読み'], ['level', 'レベル'],
+];
+
+function guessField(header, i) {
+  const h = (header || '').toLowerCase();
+  if (/見出|用語|語句|原語|word|term|english|英語/.test(h)) return 'word';
+  if (/訳|意味|日本語|trans|meaning|定義/.test(h)) return 'trans';
+  if (/用例|例文|例|example|sample/.test(h)) return 'example';
+  if (/発音|読み|よみ|pron|kana/.test(h)) return 'pron';
+  if (/level|レベル|重要/.test(h)) return 'level';
+  return i === 0 ? 'word' : i === 1 ? 'trans' : '';
+}
+
+function looksLikeHeader(row) {
+  return row.some(c => /見出|用語|訳|word|term|trans|meaning|例|発音|読み/i.test(c || ''));
+}
+
+$('xlsxFile').onchange = async (ev) => {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  try {
+    toast('読み込み中…');
+    const sheets = await parseXlsx(new Uint8Array(await f.arrayBuffer()));
+    const usable = sheets.filter(s => s.rows.length);
+    if (!usable.length) { toast('中身が空のようです'); return; }
+    openXlsxImport(usable, f.name);
+  } catch (err) {
+    sheet(`<h2>読み込めませんでした</h2><div class="note">${esc(err.message || String(err))}</div>
+      <div class="acts"><span class="spacer"></span><button class="btn" id="er-close">閉じる</button></div>`);
+    $('er-close').onclick = closeSheet;
+  }
+};
+
+function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
+  const sh = sheets[pick];
+  const rows = sh.rows;
+  const header = hasHeader === null ? looksLikeHeader(rows[0] || []) : hasHeader;
+  const width = rows.reduce((n, r) => Math.max(n, r.length), 0);
+  const headRow = header ? (rows[0] || []) : [];
+  const body = rows.slice(header ? 1 : 0);
+
+  const cols = Array.from({ length: width }, (_, i) => guessField(headRow[i], i));
+
+  sheet(`
+    <h2>Excelから読み込む</h2>
+    <div class="note">${esc(filename)} ／ ${body.length}行。どの列が何かを指定してください。</div>
+    ${sheets.length > 1 ? `<div class="gchips">${sheets.map((s, i) =>
+      `<button class="gchip${i === pick ? ' on' : ''}" data-sh="${i}">${esc(s.name)}</button>`).join('')}</div>` : ''}
+    <div class="acts" style="margin-top:10px">
+      <button class="tick${header ? ' on' : ''}" id="i-head" style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px">${header ? '✓' : ''}</button>
+      <span style="font-size:calc(13px * var(--fs))">1行目は見出し行</span>
+    </div>
+    <div class="prev"><table>
+      <tr>${cols.map((c, i) => `<th><select data-col="${i}">${FIELD_OPTS.map(([v, l]) =>
+        `<option value="${v}"${v === c ? ' selected' : ''}>${l}</option>`).join('')}</select></th>`).join('')}</tr>
+      ${body.slice(0, 4).map(r => `<tr>${cols.map((_, i) =>
+        `<td>${esc((r[i] || '').slice(0, 40))}</td>`).join('')}</tr>`).join('')}
+    </table></div>
+    <div class="acts">
+      <button class="btn" id="i-cancel">やめる</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="i-go">${body.length}行を取り込む</button>
+    </div>`);
+
+  $('sheet').querySelectorAll('[data-sh]').forEach(b =>
+    b.onclick = () => openXlsxImport(sheets, filename, +b.dataset.sh, null));
+  $('i-head').onclick = () => openXlsxImport(sheets, filename, pick, !header);
+  $('i-cancel').onclick = openMine;
+
+  $('i-go').onclick = async () => {
+    const map = {};
+    $('sheet').querySelectorAll('[data-col]').forEach(sel => {
+      if (sel.value) map[sel.value] = +sel.dataset.col;
+    });
+    if (map.word === undefined) { toast('見出し語の列を指定してください'); return; }
+    let added = 0, updated = 0;
+    for (const r of body) {
+      const word = (r[map.word] || '').trim();
+      if (!word) continue;
+      const rec = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        word,
+        trans: map.trans !== undefined ? (r[map.trans] || '').trim() : '',
+        example: map.example !== undefined ? (r[map.example] || '').trim() : '',
+        pron: map.pron !== undefined ? (r[map.pron] || '').trim() : '',
+        level: map.level !== undefined ? (parseInt(r[map.level], 10) || 0) : 0,
+        key: toKeyword(word),
+        updated: Date.now(),
+      };
+      const at = S.mine.findIndex(x => x.word === word);
+      if (at >= 0) { rec.id = S.mine[at].id; S.mine[at] = rec; updated++; }
+      else { S.mine.push(rec); added++; }
+    }
+    S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+    await saveMine();
+    updateStatus(); run();
+    sheet(`<h2>取り込みました</h2>
+      <div class="note">新規${added}語、上書き${updated}語。合計${S.mine.length}語になりました。<br>
+      このまま「PDIC辞書(.dic)で書き出す」を押すと、PDIC形式の辞書ファイルになります。</div>
+      <div class="acts"><button class="btn" id="d-close">閉じる</button><span class="spacer"></span>
+      <button class="btn primary" id="d-mine">マイ辞書へ</button></div>`);
+    $('d-close').onclick = closeSheet;
+    $('d-mine').onclick = openMine;
   };
 }
 
