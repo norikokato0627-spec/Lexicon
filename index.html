@@ -345,8 +345,10 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     </span>
     <div class="dicts" id="dicts"></div>
     <button class="ghost" id="openBtn">辞書を開く</button>
+    <button class="ghost" id="openEpBtn">EPWING</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
+  <input type="file" id="epFile" accept=".zip,.ZIP,*/*" multiple hidden>
   </div>
   <div class="searchrow">
     <div class="field">
@@ -1041,6 +1043,479 @@ async function parseXlsx(buf, maxRows = 20000) {
 }
 
 
+/* ------------------------------------------------------------------
+   EPWING / JIS X 4081 reader.
+   Structure and constants follow the eb library, which is the de-facto
+   reference for this undocumented format. Big-endian throughout.
+   ------------------------------------------------------------------ */
+
+const EP_PAGE = 2048;
+const EP_CATALOG_ENTRY = 164;
+const EP_TITLE_LEN = 80;
+
+const u1 = (b, p) => b[p];
+const u2 = (b, p) => (b[p] << 8) | b[p + 1];
+const u4 = (b, p) => ((b[p] << 24) >>> 0) + (b[p + 1] << 16) + (b[p + 2] << 8) + b[p + 3];
+
+/* ---- EUC-JP <-> Unicode, built once from the platform decoder ---- */
+let _eucDecoder = null;
+let _eucEncodeMap = null;
+
+function eucDecode(bytes) {
+  if (!_eucDecoder) _eucDecoder = new TextDecoder('euc-jp', { fatal: false });
+  return _eucDecoder.decode(bytes);
+}
+
+/** char -> EUC-JP bytes, derived by decoding every two-byte sequence once. */
+function eucEncodeMap() {
+  if (_eucEncodeMap) return _eucEncodeMap;
+  const m = new Map();
+  const pair = new Uint8Array(2);
+  for (let hi = 0xa1; hi <= 0xfe; hi++) {
+    for (let lo = 0xa1; lo <= 0xfe; lo++) {
+      pair[0] = hi; pair[1] = lo;
+      const s = eucDecode(pair);
+      if (s.length === 1 && s !== '\uFFFD' && !m.has(s)) m.set(s, [hi, lo]);
+    }
+  }
+  for (let c = 0x20; c <= 0x7e; c++) m.set(String.fromCharCode(c), [c]);
+  _eucEncodeMap = m;
+  return m;
+}
+
+function eucEncode(str) {
+  const map = eucEncodeMap();
+  const out = [];
+  for (const ch of str) {
+    const b = map.get(ch);
+    if (b) out.push(...b);
+  }
+  return Uint8Array.from(out);
+}
+
+/* ---- query canonicalisation, mirroring eb's index styles ---- */
+const HALF_TO_WIDE = (() => {
+  const m = new Map();
+  for (let c = 0x21; c <= 0x7e; c++) m.set(c, 0xff00 + (c - 0x20));
+  m.set(0x20, 0x3000);
+  return m;
+})();
+
+/**
+ * Turn a query into the byte form the index stores:
+ * ASCII becomes full width, lower case becomes upper case,
+ * katakana becomes hiragana, and spaces and marks are dropped.
+ */
+function canonicalWord(word, style) {
+  let s = '';
+  for (const ch of word) {
+    const c = ch.codePointAt(0);
+    if (c < 0x80) {
+      if (c === 0x20 || c === 0x27 || c === 0x2d) continue;      // space ' -
+      const up = ch.toUpperCase();
+      const wide = HALF_TO_WIDE.get(up.charCodeAt(0));
+      s += wide ? String.fromCharCode(wide) : up;
+      continue;
+    }
+    if (ch === '\u3000' || ch === '\u2019' || ch === '\u2212'
+        || ch === '\u30fb' || ch === '\u2010') continue;
+    if (style.katakana && c >= 0x30a1 && c <= 0x30f6) {
+      s += String.fromCharCode(c - 0x60);                        // katakana -> hiragana
+      continue;
+    }
+    if (style.lower && c >= 0xff41 && c <= 0xff5a) {
+      s += String.fromCharCode(c - 0x20);                        // full-width lower -> upper
+      continue;
+    }
+    s += ch;
+  }
+  // the index stores JIS X 0208 with the high bit clear
+  const euc = eucEncode(s);
+  const jis = new Uint8Array(euc.length);
+  for (let i = 0; i < euc.length; i++) jis[i] = euc[i] & 0x7f;
+  return jis;
+}
+
+/* ---- comparisons, as in eb's match.c ---- */
+function preMatch(word, page, at, len) {
+  for (let i = 0; ; i++) {
+    if (len <= i) return 0;
+    if (i >= word.length) return 0;
+    if (word[i] !== page[at + i]) return word[i] - page[at + i];
+  }
+}
+function matchWord(word, page, at, len) {
+  for (let i = 0; ; i++) {
+    if (len <= i) return i < word.length ? word[i] : 0;
+    if (i >= word.length) return 0;
+    if (word[i] !== page[at + i]) return word[i] - page[at + i];
+  }
+}
+/** As matchWord, but hiragana and katakana rows are treated as one. */
+function matchWordKanaGroup(word, page, at, len) {
+  for (let i = 0; ; i += 2) {
+    if (len <= i) return i < word.length ? word[i] : 0;
+    if (i >= word.length) return 0;
+    if (len <= i + 1 || i + 1 >= word.length) return word[i] - page[at + i];
+    const w0 = word[i], w1 = word[i + 1];
+    const p0 = page[at + i], p1 = page[at + i + 1];
+    if ((w0 === 0x24 || w0 === 0x25) && (p0 === 0x24 || p0 === 0x25)) {
+      if (w1 !== p1) return ((w0 << 8) + w1) - ((p0 << 8) + p1);
+    } else if (w0 !== p0 || w1 !== p1) {
+      return ((w0 << 8) + w1) - ((p0 << 8) + p1);
+    }
+  }
+}
+
+function matchExact(word, page, at, len) {
+  for (let i = 0; ; i++) {
+    if (len <= i) return i < word.length ? word[i] : 0;
+    if (i >= word.length) return -page[at + i];
+    if (word[i] !== page[at + i]) return word[i] - page[at + i];
+  }
+}
+
+/* ---- escape sequence lengths, extracted from eb's readtext.c ---- */
+const STEP = {};
+(() => {
+  const two = [0x02,0x03,0x04,0x05,0x06,0x07,0x0a,0x0b,0x0c,0x0e,0x0f,0x10,0x11,
+    0x12,0x13,0x1c,0x1d,0x32,0x35,0x36,0x37,0x38,0x3a,0x3b,0x3d,0x3e,0x3f,0x43,
+    0x49,0x4e,0x59,0x5c,0x61,0x6a,0x6b,0x6c,0x6d,0x6f,0xe1];
+  for (const c of two) STEP[c] = 2;
+  for (let c = 0x70; c <= 0x8f; c++) STEP[c] = 2;
+  for (let c = 0xe4; c <= 0xfe; c += 2) STEP[c] = 2;
+  Object.assign(STEP, {
+    0x09: 4, 0x14: 4, 0x1a: 4, 0x1b: 4, 0x1e: 4, 0x1f: 4, 0x41: 4, 0x42: 4,
+    0x45: 4, 0x4c: 4, 0xe0: 4, 0x4b: 8, 0x52: 8, 0x62: 8, 0x63: 8, 0x64: 8,
+    0x53: 10, 0x44: 12, 0x4a: 18, 0x3c: 20, 0x4d: 20, 0x4f: 34, 0x39: 46,
+  });
+})();
+
+/* ---- character conversion for the text stream ---- */
+const HALF_MAP = new Map(Object.entries({
+  '\u3000': ' ', '\u201c': '"', '\u201d': '"', '\u2018': "'", '\u2019': "'",
+  '\u2015': '-', '\u2014': '-', '\u2212': '-', '\u301c': '~', '\uff5e': '~',
+}));
+
+/** A half-width (narrow) character in the text stream. */
+function narrowToAscii(c1, c2) {
+  const ch = eucDecode(Uint8Array.from([c1 | 0x80, c2 | 0x80]));
+  const code = ch.codePointAt(0);
+  if (code >= 0xff01 && code <= 0xff5e) return String.fromCharCode(code - 0xfee0);
+  const m = HALF_MAP.get(ch);
+  return m !== undefined ? m : null;
+}
+
+/** A full-width character; the wave dash follows the Japanese convention. */
+function wideChar(c1, c2) {
+  const ch = eucDecode(Uint8Array.from([c1 | 0x80, c2 | 0x80]));
+  return ch === '\uff5e' ? '\u301c' : ch;
+}
+
+/* ------------------------------------------------------------------ */
+
+class EpwingSubbook {
+  constructor(book, title, directory, indexPage) {
+    this.book = book;
+    this.title = title;
+    this.directory = directory;
+    this.indexPage = indexPage;
+    this.searches = {};      // index_id -> { startPage, endPage, style }
+  }
+
+  async page(n, count = 1) {
+    return this.book.readHonmon(this, (n - 1) * EP_PAGE, EP_PAGE * count);
+  }
+
+  async loadIndexes() {
+    const buf = await this.page(this.indexPage);
+    const count = u1(buf, 1);
+    const globalAvail = u1(buf, 4) <= 0x02 ? u1(buf, 4) : 0;
+    for (let i = 0, p = 16; i < count && p + 16 <= buf.length; i++, p += 16) {
+      const id = u1(buf, p);
+      const startPage = u4(buf, p + 2);
+      const pages = u4(buf, p + 6);
+      const avail = u1(buf, p + 10);
+      let style;
+      if ((globalAvail === 0x00 && avail === 0x02) || globalAvail === 0x02) {
+        const flags = (buf[p + 11] << 16) | (buf[p + 12] << 8) | buf[p + 13];
+        style = {
+          katakana: ((flags & 0xc00000) >> 22) === 1,
+          lower: ((flags & 0x300000) >> 20) === 1,
+        };
+      } else if (id === 0x70 || id === 0x90) {
+        style = { katakana: true, lower: true };
+      } else {
+        style = { katakana: false, lower: true };
+      }
+      this.searches[id] = { startPage, endPage: startPage + pages - 1, style };
+    }
+    return this;
+  }
+
+  get methods() {
+    const m = [];
+    if (this.searches[0x91] || this.searches[0x90] || this.searches[0x92]) m.push('word');
+    if (this.searches[0x70] || this.searches[0x71] || this.searches[0x72]) m.push('endword');
+    return m;
+  }
+
+  /** mode: 'word' (前方一致) | 'exact' (完全一致) */
+  async search(query, mode = 'word', limit = 100) {
+    const ids = [0x91, 0x90, 0x92];
+    const seen = new Set();
+    const hits = [];
+    for (const id of ids) {
+      const idx = this.searches[id];
+      if (!idx) continue;
+      const word = canonicalWord(query, idx.style);
+      if (!word.length) continue;
+      for (const h of await this.walk(idx, word, mode, limit)) {
+        const key = h.textPage + ':' + h.textOffset;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        hits.push(h);
+        if (hits.length >= limit) return hits;
+      }
+    }
+    return hits;
+  }
+
+  /** Descend the index tree, then read matching leaf entries. */
+  async walk(idx, word, mode, limit) {
+    const single = mode === 'exact' ? matchExact : matchWord;
+    const group = mode === 'exact' ? matchExact : matchWordKanaGroup;
+    let page = idx.startPage;
+
+    for (let depth = 0; depth < 6; depth++) {
+      const buf = await this.page(page);
+      const pageId = u1(buf, 0);
+      const entryLength = u1(buf, 1);
+      const entryCount = u2(buf, 2);
+      if (pageId & 0x80) break;                       // leaf reached
+      let off = 4, next = page;
+      for (let i = 0; i < entryCount; i++) {
+        if (off + entryLength + 4 > EP_PAGE) break;
+        if (preMatch(word, buf, off, entryLength) <= 0) {
+          next = u4(buf, off + entryLength);
+          break;
+        }
+        off += entryLength + 4;
+      }
+      if (next === page) return [];
+      page = next;
+    }
+
+    const hits = [];
+    for (; page <= idx.endPage; page++) {
+      const buf = await this.page(page);
+      const pageId = u1(buf, 0);
+      if (!(pageId & 0x80)) break;
+      let entryLength = u1(buf, 1);
+      const entryCount = u2(buf, 2);
+      const grouped = (pageId & 0x10) === 0x10;
+      let off = 4;
+      let stop = false;
+
+      for (let i = 0; i < entryCount && !stop; i++) {
+        let cmp, at, len, base;
+        if (!grouped) {
+          if (entryLength === 0) {                    // variable length entries
+            len = u1(buf, off);
+            at = off + 1;
+            base = off + len + 1;
+            cmp = single(word, buf, at, len);
+            if (cmp === 0) hits.push(this.hitAt(buf, base));
+            off += len + 13;
+          } else {                                    // fixed length entries
+            len = entryLength; at = off; base = off + len;
+            cmp = single(word, buf, at, len);
+            if (cmp === 0) hits.push(this.hitAt(buf, base));
+            off += len + 12;
+          }
+        } else {
+          const group = u1(buf, off);
+          if (group === 0x00) {
+            len = u1(buf, off + 1); at = off + 2; base = off + len + 2;
+            cmp = single(word, buf, at, len);
+            if (cmp === 0) hits.push(this.hitAt(buf, base));
+            off += len + 14;
+          } else if (group === 0x80) {
+            len = u1(buf, off + 1);
+            cmp = single(word, buf, off + 4, len);
+            this._groupCmp = cmp;
+            off += len + 4;
+            continue;
+          } else if (group === 0xc0) {
+            len = u1(buf, off + 1);
+            const groupCmp = this._groupCmp === undefined ? -1 : this._groupCmp;
+            cmp = groupCmp;
+            if (groupCmp === 0 && group(word, buf, off + 2, len) === 0) {
+              hits.push(this.hitAt(buf, off + len + 2));
+            }
+            off += len + 14;
+          } else {
+            stop = true; break;
+          }
+        }
+        if (cmp < 0 || hits.length >= limit) { stop = true; }
+      }
+      if (stop || hits.length >= limit) break;
+    }
+    return hits;
+  }
+
+  hitAt(buf, base) {
+    return {
+      textPage: u4(buf, base), textOffset: u2(buf, base + 4),
+      headingPage: u4(buf, base + 6), headingOffset: u2(buf, base + 10),
+    };
+  }
+
+  /** Read text or heading starting at a position. */
+  async read(page, offset, { heading = false, maxBytes = 32768 } = {}) {
+    const chars = [];
+    let cur = page, at = offset;
+    let bytes = 0, printable = 0;
+    let stop = false, narrow = false;
+    let autoStop = -1;
+    let buf = await this.page(cur, 4);
+    let p = at;
+
+    const flush = () => chars.join('');
+
+    while (!stop && bytes < maxBytes) {
+      if (p + 2 > buf.length) {
+        cur += 4;
+        buf = await this.page(cur, 4);
+        if (!buf.length) break;
+        p -= 4 * EP_PAGE;
+        if (p < 0) break;
+      }
+      const c1 = buf[p];
+      if (c1 === 0x1f) {
+        const c2 = buf[p + 1];
+        let step = STEP[c2] || 2;
+        // a reference marker only carries an argument when the next byte is zero
+        if (c2 === 0x42 && buf[p + 2] !== 0x00) step = 2;
+        switch (c2) {
+          case 0x03: stop = true; break;               // end of text
+          case 0x04: narrow = true; break;             // narrow (half width) begins
+          case 0x05: narrow = false; break;            // narrow ends
+          case 0x0a:                                   // newline
+            if (heading) stop = true; else chars.push('\n');
+            break;
+          case 0x41: {                                 // keyword begins
+            const arg = (buf[p + 2] << 8) | buf[p + 3];
+            // The first keyword marker defines this book's stop code;
+            // meeting it again means the next entry has started.
+            if (printable > 0 && !heading && arg === autoStop) { stop = true; break; }
+            if (autoStop < 0) autoStop = arg;
+            break;
+          }
+          case 0x09: {                                 // indent, may also be the stop code
+            const arg = (buf[p + 2] << 8) | buf[p + 3];
+            if (printable > 0 && !heading && autoStop >= 0 && arg === autoStop) stop = true;
+            break;
+          }
+          case 0x02: case 0x06: case 0x07:
+          case 0x0e: case 0x0f: case 0x10: case 0x11:
+          case 0x12: case 0x13: case 0x61: case 0x62:
+            break;                                     // formatting only
+          default: break;
+        }
+        p += step; bytes += step;
+        continue;
+      }
+      if (c1 === 0x00) break;
+      if (c1 < 0x20) { p += 1; bytes += 1; continue; }
+      const c2 = buf[p + 1];
+      printable++;
+      if (c1 >= 0xa1) {
+        // A gaiji: a character drawn from the book's own bitmap font.
+        // Without an appendix there is no text for it, so it is dropped.
+        p += 2; bytes += 2;
+        continue;
+      }
+      // ordinary text is two bytes of JIS X 0208; add the high bit for EUC-JP
+      if (narrow) {
+        const ascii = narrowToAscii(c1, c2);
+        if (ascii !== null) chars.push(ascii);
+        else chars.push(eucDecode(Uint8Array.from([c1 | 0x80, c2 | 0x80])));
+      } else {
+        chars.push(wideChar(c1, c2));
+      }
+      p += 2; bytes += 2;
+    }
+    return flush().replace(/\u0000/g, '');
+  }
+}
+
+class EpwingBook {
+  /**
+   * files: Map of lower-cased relative path -> { size, slice(a,b) }
+   * e.g. "catalogs", "kokugo/data/honmon"
+   */
+  constructor(files, name) {
+    this.files = files;
+    this.name = name;
+    this.subbooks = [];
+  }
+
+  static find(files, ...candidates) {
+    for (const c of candidates) {
+      for (const k of files.keys()) if (k === c || k.endsWith('/' + c)) return k;
+    }
+    return null;
+  }
+
+  async readFile(key, offset, length) {
+    const f = this.files.get(key);
+    if (!f) return new Uint8Array(0);
+    const end = Math.min(f.size, offset + length);
+    if (end <= offset) return new Uint8Array(0);
+    return new Uint8Array(await f.slice(offset, end).arrayBuffer());
+  }
+
+  async readHonmon(sub, offset, length) {
+    return this.readFile(sub.honmonKey, offset, length);
+  }
+
+  async open() {
+    const catKey = EpwingBook.find(this.files, 'catalogs', 'catalogs.');
+    if (!catKey) throw new Error('CATALOGSが見つかりません。EPWING辞書のフォルダごと選んでください。');
+    const head = await this.readFile(catKey, 0, 16);
+    if (head.length < 16) throw new Error('CATALOGSが壊れています。');
+    const count = u2(head, 0);
+    if (!count || count > 100) throw new Error('CATALOGSを読めませんでした。');
+
+    for (let i = 0; i < count; i++) {
+      const b = await this.readFile(catKey, 16 + i * EP_CATALOG_ENTRY, EP_CATALOG_ENTRY);
+      if (b.length < EP_CATALOG_ENTRY) break;
+      // titles are stored as JIS X 0208 with the high bit clear
+      const t = b.slice(2, 2 + EP_TITLE_LEN);
+      for (let k = 0; k < t.length; k++) if (t[k] >= 0x21 && t[k] <= 0x7e) t[k] |= 0x80;
+      let title = eucDecode(t).replace(/\u0000[\s\S]*$/, '').trim();
+      let dir = '';
+      for (let k = 2 + EP_TITLE_LEN; k < 2 + EP_TITLE_LEN + 8; k++) {
+        if (b[k] === 0 || b[k] === 0x20) break;
+        dir += String.fromCharCode(b[k]);
+      }
+      const indexPage = u2(b, 2 + EP_TITLE_LEN + 8 + 4) || 1;
+      const honmonKey = EpwingBook.find(this.files,
+        dir.toLowerCase() + '/data/honmon', 'data/honmon', 'honmon');
+      if (!honmonKey) continue;
+      const sub = new EpwingSubbook(this, title || dir, dir, indexPage);
+      sub.honmonKey = honmonKey;
+      await sub.loadIndexes();
+      this.subbooks.push(sub);
+    }
+    if (!this.subbooks.length) throw new Error('本文ファイル（HONMON）が見つかりませんでした。');
+    return this;
+  }
+}
+
+
 
 /* ==================================================================
    storage: Claude artifact storage when present, otherwise the
@@ -1108,6 +1583,19 @@ const savedDicts = {
       await idbTx('readwrite', st => st.put({ name, data, size: file.size, added: Date.now() }));
       return true;
     } catch (_) { return false; }
+  },
+  async putEpwing(name, parts) {
+    try {
+      await idbTx('readwrite', st => st.put({ name, kind: 'epwing', parts, size: 0, added: Date.now() }));
+      return true;
+    } catch (_) {
+      try {
+        const raw = {};
+        for (const k of Object.keys(parts)) raw[k] = await parts[k].arrayBuffer();
+        await idbTx('readwrite', st => st.put({ name, kind: 'epwing', raw, size: 0, added: Date.now() }));
+        return true;
+      } catch (__) { return false; }
+    }
   },
   async del(name) { try { await idbTx('readwrite', st => st.delete(name)); return true; } catch (_) { return false; } },
 };
@@ -1209,6 +1697,36 @@ function curGroup() {
   return S.groups.find(g => g.id === S.activeGroup) || S.groups[0];
 }
 
+/** Wraps an EPWING subbook in the same shape as a PDIC dictionary. */
+class EpwingAdapter {
+  constructor(sub) {
+    this.sub = sub;
+    this.name = sub.title;
+    this.nword = 0;          // EPWING books don't record a headword count
+    this.index = [];
+    this.epwing = true;
+  }
+  async searchHeadword(query, mode = 'prefix', limit = 300) {
+    const hits = await this.sub.search(query, mode === 'exact' ? 'exact' : 'word', limit);
+    const out = [];
+    for (const h of hits) {
+      const heading = await this.sub.read(h.headingPage, h.headingOffset, { heading: true });
+      const body = await this.sub.read(h.textPage, h.textOffset);
+      let trans = body;
+      if (trans.startsWith(heading)) trans = trans.slice(heading.length);
+      out.push({
+        key: toKeyword(heading), word: heading.trim(),
+        trans: trans.replace(/^\n+/, '').trimEnd(),
+        example: '', pron: '', level: 0,
+      });
+    }
+    return out;
+  }
+  async scan() { /* EPWING has no practical full-text scan */ }
+  locate() { return 0; }
+  async listFrom() { return []; }
+}
+
 /** Dictionaries the current group searches, in the group's own order. */
 function activeDicts() {
   const g = curGroup();
@@ -1258,6 +1776,69 @@ function makeReader(file) {
 }
 
 $('openBtn').onclick = () => $('file').click();
+$('openEpBtn').onclick = () => $('epFile').click();
+
+/** Build the path -> source map an EPWING book needs. */
+async function epwingFileMap(fileList) {
+  const map = new Map();
+  const add = (key, bytes) => {
+    const blob = new Blob([bytes]);
+    map.set(key.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b) });
+  };
+  for (const f of fileList) {
+    if (/\.zip$/i.test(f.name)) {
+      const zip = await readZip(new Uint8Array(await f.arrayBuffer()));
+      for (const name of zip.names) {
+        const base = name.split('/').pop().toLowerCase();
+        if (!base) continue;
+        if (base === 'catalogs' || base === 'catalogs.' || base === 'honmon' ||
+            base === 'honmon2' || base.startsWith('honmon')) {
+          add(name, await zip.get(name));
+        }
+      }
+    } else {
+      const rel = (f.webkitRelativePath || f.name);
+      add(rel, new Uint8Array(await f.arrayBuffer()));
+    }
+  }
+  return map;
+}
+
+async function addEpwing(fileList, label) {
+  const map = await epwingFileMap(fileList);
+  if (!map.size) throw new Error('CATALOGSとHONMONが見つかりませんでした。');
+  const book = await new EpwingBook(map, label).open();
+  for (const sub of book.subbooks) {
+    const adapter = new EpwingAdapter(sub);
+    S.dicts = S.dicts.filter(d => d.name !== adapter.name);
+    S.dicts.push({ id: Math.random().toString(36).slice(2), name: adapter.name, dict: adapter, file: label });
+    const g = curGroup();
+    if (g.files && !g.files.includes(adapter.name)) g.files.push(adapter.name);
+  }
+  return book;
+}
+
+$('epFile').onchange = async (ev) => {
+  const files = [...ev.target.files];
+  ev.target.value = '';
+  if (!files.length) return;
+  const label = files.length === 1 ? files[0].name : (files[0].name + ' ほか');
+  try {
+    $('status').textContent = 'EPWING辞書を読み込み中…';
+    const book = await addEpwing(files, label);
+    const parts = {};
+    for (const [k, v] of book.files) {
+      parts[k] = new Blob([await v.slice(0, v.size).arrayBuffer()]);
+    }
+    await savedDicts.putEpwing(label, parts);
+    toast(book.subbooks.map(s => s.title).join('、') + ' を保存しました');
+  } catch (e) {
+    toast(e.message || 'EPWING辞書を開けませんでした');
+    $('status').textContent = e.message || 'EPWING辞書を開けませんでした';
+  }
+  await saveGroups();
+  renderChips(); updateStatus(); run();
+};
 
 /** Open one dictionary file and register it. Returns the dictionary or throws. */
 async function addDictionary(f, opts = {}) {
@@ -1289,6 +1870,26 @@ async function restoreDicts() {
   if (!saved.length) return;
   for (const rec of saved) {
     try {
+      if (rec.kind === 'epwing') {
+        const map = new Map();
+        const parts = rec.parts || {};
+        for (const k of Object.keys(parts)) {
+          const blob = parts[k];
+          map.set(k, { size: blob.size, slice: (a, b) => blob.slice(a, b) });
+        }
+        for (const k of Object.keys(rec.raw || {})) {
+          const blob = new Blob([rec.raw[k]]);
+          map.set(k, { size: blob.size, slice: (a, b) => blob.slice(a, b) });
+        }
+        const book = await new EpwingBook(map, rec.name).open();
+        for (const sub of book.subbooks) {
+          const adapter = new EpwingAdapter(sub);
+          S.dicts = S.dicts.filter(d => d.name !== adapter.name);
+          S.dicts.push({ id: Math.random().toString(36).slice(2), name: adapter.name,
+                         dict: adapter, file: rec.name });
+        }
+        continue;
+      }
       let src = rec.file;
       if (!src || typeof src.slice !== 'function') src = new Blob([rec.data]);
       await addDictionary(src, { fromStore: true, name: rec.name });
@@ -1322,13 +1923,14 @@ $('file').onchange = async (ev) => {
 function renderChips() {
   const el = $('dicts');
   el.innerHTML = activeDicts().map(d =>
-    `<span class="chip"><b>${esc(d.name)}</b><span class="n">${d.dict.nword.toLocaleString()}</span></span>`
+    `<span class="chip"><b>${esc(d.name)}</b><span class="n">${
+       d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span></span>`
   ).join('');
 }
 
 function updateStatus() {
   const ds = activeDicts();
-  const words = ds.reduce((n, d) => n + d.dict.nword, 0);
+  const words = ds.reduce((n, d) => n + (d.dict.nword || 0), 0);
   const parts = [];
   if (ds.length) parts.push(`${ds.length}辞書 ${words.toLocaleString()}語`);
   parts.push(S.job
@@ -1980,6 +2582,7 @@ function openMine() {
       大事な語は定期的に書き出してください。</div>
     <div class="acts">
       <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
+      <button class="btn" id="x-share">共有</button>
       <button class="btn" id="x-csv">CSVで書き出す</button>
       <button class="btn" id="x-json">バックアップを書き出す</button>
       <button class="btn" id="x-xlsx">Excelから読み込む</button>
@@ -2058,6 +2661,29 @@ function openMine() {
       try { await navigator.clipboard.writeText(text); toast('コピーしました'); }
       catch (_) { out.select(); toast('長押しして「コピー」を選んでください'); }
     };
+  };
+
+  $('x-share').onclick = async () => {
+    const target = mineInJob();
+    if (!target.length) { toast('渡す語がありません'); return; }
+    const name = (S.job ? S.job.replace(/[\\/:*?"<>|]/g, '_') : 'MyLexicon') + '.dic';
+    let bytes;
+    try { bytes = buildDic(target); }
+    catch (err) { $('x-note').textContent = '作成に失敗しました: ' + (err.message || err); return; }
+    try {
+      const file = new File([bytes], name, { type: 'application/octet-stream' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: S.job || 'マイ辞書' });
+        $('x-note').innerHTML = '渡した相手は、このアプリの「辞書を開く」でそのまま開けます。' +
+          'Windows版PDICの辞書グループにも追加できます。';
+        return;
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;   // the person closed the share sheet
+    }
+    download2(bytes, name);
+    $('x-note').innerHTML = '共有シートが使えなかったので、ファイルとして保存しました。' +
+      'メールやAirDropで送ってください。';
   };
 
   $('x-dic').onclick = () => {
@@ -2275,6 +2901,14 @@ function parseCsvLine(line) {
   }
   out.push(cur);
   return out;
+}
+
+function download2(bytes, filename) {
+  const blob = new Blob([bytes], { type: 'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
 function download(text, filename, enc) {
