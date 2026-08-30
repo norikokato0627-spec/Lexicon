@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAD/0lEQVR42u2aTWxVVRDHz8w599u+tpTSFI0EjTHFkqhgEwupKGpIjCaQqKwMbozRlRpXSlciC6Ou1ERhw8aPhV1JIlasJUXEkqAiVhtpIOCzLVBpebev955zxsV1afpOH/e9d1+8sz6L85uZM/+ZzIG1G3axZjZkTW45QA6QA+QAjTVheA6AISCD2t+IGAOmNRFRagAAoLVeCEt18iox17VtW2hNKQAAQBTFnudsH9jEec1TjogQceL385eKl33fqcggTHzvec7HHw329/XWLbOL01effHZwYvKC59rLM1QAQISF6+VHtm3u7+uNohgADL2YwFd1eZBSdnet2vnYwOv7DgS+q7VK4w0QAQCiUQolmaaUrrIyIhIREZl4wDSn0dj3iDB57uLkuYuIYFhJ/tNlKZdRQ9NEAuC3yQuMsTtuu0UT8ZUnEhFJpUxKUPoAidm2Vb0LtLYswTkGvmsSwJoAVJ05WpNliemZuaHDx4ZHx33fvdEyWk9LfP/J50f37j94qTjruY7nOlrr5gBQStu2OH7yl+deest1nTUd7UqrdJS4Tk0lgpTq7fc+RQDfs+NYNlM3SkRC8GvzpTO//uG6jpQrEJAMtdOIyDlvynkAAKJItrUG2wc2zS+UbFs0XwQS6X35hafWdq+enp3jiIZijFl6xHr9uu6hQ/se3XbfQmmxvBSZMGTqDUAcq40b1g8deuPEkQ/27N4xv1CqOIH8b2biuigxWRb/+ezU4P6DI2OnOcdCS1CxJxfZub0QOHW+uPOZ14rTVzraCpqM5vqspFBy13fe/+zP4uWuznaltWFHmBUltm3x97XS16OnCi1BFMkVPP1MdaNKqWZVYilVayHo7bm9XF4SApsvAlqTEPyVF5/WROFiZAmB2FRKzDnGsezvu+vDd19tbfH/mrl6vVQ2YciQDiBiHKvdux56YMvdwyPjX3z13ZFvfgh8b/mhLItK3N21auv9G2+9uUvGqmI3lEUl3vvmgZGx04LzQiFX4lyJcyXOlThX4iqUuBDMXJkLF5dMZuIsKvGDW+8ZOnzsy6MnR4//6HtuA5QYAKrbLyFCHMvVHa3P73ni4YHNYVi5HapJBGIpbywOkhgvheUGpBAAEFFnR1tS3auLAwAIzg0fsREAkeneHAG0pr57exhjSmmE6lf7qW3qicgSIinVyImRSQopxqr9lgBMSuU4lm1bKayYtCbPdc5MTM3Mzq3pbK9POXJsizE29v1PjmNXZICKn/4QIQyXeu5c9/iOLfzfvKzhnw8i4hxPjJ8d/nbc99wUABKGxXIUhuW6aYJtWzcFXmpbSq3Jc+3Ad+vXn2pSWqdWhRKG5f8sNEy/WZNbDpAD5AA5QGPtH4nZEHEgR+TZAAAAAElFTkSuQmCC">
+<meta name="theme-color" content="#1A2A52">
+<meta name="apple-mobile-web-app-title" content="Tasha’s Lexicon">
+<title>Tasha’s Lexicon — PDIC辞書ビューア</title>
+<style>
+@font-face{
+  font-family:'JPSans';
+  src:local('Hiragino Sans'),local('HiraginoSans-W3'),local('Hiragino Kaku Gothic ProN'),
+      local('HiraKakuProN-W3'),local('Yu Gothic'),local('YuGothic'),local('Noto Sans JP');
+  unicode-range:U+2E80-303F,U+3040-30FF,U+3190-319F,U+31F0-31FF,U+3200-4DBF,U+4E00-9FFF,
+                U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF,U+20000-2FA1F;
+}
+@font-face{
+  font-family:'JPSerif';
+  src:local('Hiragino Mincho ProN'),local('HiraMinProN-W3'),local('Hiragino Mincho Pro'),
+      local('Yu Mincho'),local('YuMincho'),local('Noto Serif JP');
+  unicode-range:U+2E80-303F,U+3040-30FF,U+3190-319F,U+31F0-31FF,U+3200-4DBF,U+4E00-9FFF,
+                U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF,U+20000-2FA1F;
+}
+:root{
+  --fs:1.15;
+  --navy:#1A2A52; --navy-soft:#2E4076; --navy-pale:#D7DCE6;
+  --ink:#1C1E24; --grey:#6B7280; --band:#F0F1F3; --rule:#CFD3DA; --paper:#FFFFFF;
+  --serif:"Iowan Old Style","Charter",'JPSerif',"Hiragino Mincho ProN","Hiragino Sans",
+          Georgia,"Times New Roman",serif;
+  --sans:"Helvetica Neue",Helvetica,'JPSans',"Hiragino Sans","Hiragino Kaku Gothic ProN",
+         Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,'JPSans',"Hiragino Sans",Consolas,monospace;
+  --pad:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --navy:#8FA6DA; --navy-soft:#A9BCE6; --navy-pale:#26304A;
+    --ink:#E7E9ED; --grey:#9AA1AD; --band:#1B1D22; --rule:#33373F; --paper:#111318;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--paper)}
+html,body{min-height:100%}
+body{
+  margin:0; font-family:var(--sans); font-size:calc(15px * var(--fs)); line-height:1.5;
+  color:var(--ink); background:var(--paper);
+  min-height:100vh; min-height:100dvh;
+  -webkit-text-size-adjust:100%;
+  display:flex; flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+input,textarea{font:inherit;color:inherit}
+
+/* ---------- masthead ---------- */
+header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto;
+  box-shadow:0 3px 0 -2px var(--rule)}
+.bar{display:flex;align-items:baseline;gap:10px;padding:12px var(--pad) 0;flex-wrap:wrap}
+.mark{
+  font-family:var(--serif);font-size:calc(30px * var(--fs));letter-spacing:.005em;color:var(--navy);
+  flex:1 1 auto;display:flex;align-items:baseline;gap:9px;white-space:nowrap;line-height:1.05
+}
+.mark .sub{
+  font-family:var(--mono);font-size:calc(11px * var(--fs));letter-spacing:.2em;
+  text-transform:uppercase;color:var(--grey);flex:0 0 auto
+}
+@media (max-width:430px){
+  .mark{font-size:calc(24px * var(--fs))}
+  .mark .sub{font-size:calc(9.5px * var(--fs));letter-spacing:.12em}
+}
+.dicts{display:flex;gap:6px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
+.dicts:not(:empty){margin-top:9px}
+.chip{
+  font-size:calc(11px * var(--fs));letter-spacing:.02em;padding:3px 8px;border:1px solid var(--rule);
+  border-radius:2px;color:var(--grey);white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis
+}
+.chip.on{border-color:var(--navy);color:var(--navy)}
+.chip b{font-weight:600}
+.chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
+.ghost{
+  font-size:calc(12.5px * var(--fs));color:var(--navy);border:1px solid var(--rule);border-radius:2px;
+  padding:6px 12px;white-space:nowrap;flex:0 0 auto;align-self:center
+}
+.ghost:active{background:var(--band)}
+
+.searchrow{display:flex;gap:8px;align-items:center;padding:8px var(--pad) 0}
+.field{flex:1 1 auto;position:relative;display:flex;align-items:center}
+.field input{
+  width:100%;padding:10px 34px 10px 12px;font-size:calc(17px * var(--fs));
+  border:1px solid var(--rule);border-radius:3px;background:var(--paper)
+}
+.field input::placeholder{color:var(--grey)}
+.clear{position:absolute;right:6px;width:26px;height:26px;color:var(--grey);font-size:calc(16px * var(--fs));line-height:1}
+.add{
+  flex:0 0 auto;background:var(--navy);color:#fff;border-radius:3px;padding:10px 14px;font-size:calc(14px * var(--fs));font-weight:600
+}
+@media (prefers-color-scheme: dark){ .add{color:#0E1016} }
+
+.modes{display:flex;gap:0;padding:8px var(--pad) 0}
+.modes button{
+  font-size:calc(12px * var(--fs));padding:5px 11px;border:1px solid var(--rule);border-right:none;color:var(--grey);background:var(--paper)
+}
+.modes button:first-child{border-radius:2px 0 0 2px}
+.modes button:last-child{border-right:1px solid var(--rule);border-radius:0 2px 2px 0}
+.modes button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .modes button[aria-pressed="true"]{color:#0E1016} }
+
+/* ---------- thumb index: the signature element ---------- */
+.thumb{position:relative;height:34px;margin:10px var(--pad) 0;touch-action:none;cursor:ew-resize}
+.thumb::before{
+  content:"";position:absolute;left:0;right:0;top:11px;height:1px;background:var(--rule)
+}
+.thumb .notch{position:absolute;top:0;transform:translateX(-50%);text-align:center;pointer-events:none}
+.thumb .notch i{display:block;width:1px;height:8px;background:var(--rule);margin:3px auto 0}
+.thumb .notch b{
+  display:block;font-family:var(--mono);font-size:calc(9px * var(--fs));font-weight:400;color:var(--grey);
+  margin-top:3px;letter-spacing:0
+}
+.thumb .cursor{
+  position:absolute;top:0;width:2px;height:14px;background:var(--navy);transform:translateX(-1px);
+  transition:left .18s ease
+}
+.thumb .cursor.dragging{transition:none}
+.thumb[data-empty="1"]{opacity:.35;pointer-events:none}
+
+
+/* ---------- engraved plate ---------- */
+.plate-wrap{max-width:380px;margin:0 auto 26px}
+.plate-frame{
+  border:1px solid var(--rule);padding:16px 14px 12px;position:relative;
+  box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--rule)
+}
+.plate{display:block;width:100%;height:auto;color:var(--navy);opacity:.9}
+.plate .ribbon{fill:var(--navy);opacity:.85}
+.plate .ink{fill:var(--navy);font-family:var(--mono)}
+.plate-cap{
+  margin-top:12px;text-align:center;font-family:var(--mono);font-size:calc(9px * var(--fs));
+  letter-spacing:.18em;text-transform:uppercase;color:var(--grey)
+}
+.fade-in{animation:fade .55s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){ .fade-in{animation:none} }
+.swell{display:block;width:64px;height:7px;margin:0 0 18px;color:var(--navy)}
+.swell path{fill:currentColor}
+
+.list .plate-wrap{display:none}
+@media (max-width:860px){ .list .plate-wrap{display:block} }
+
+/* ---------- panes ---------- */
+main{flex:1 1 auto;display:flex;min-height:340px;border-top:1px solid var(--rule);margin-top:10px}
+.list{
+  flex:0 0 clamp(300px,34%,430px);border-right:1px solid var(--rule);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--paper)
+}
+.detail{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:22px 28px 60px}
+@media (max-width:860px){
+  main{position:relative}
+  .list{flex:1 1 auto;border-right:none}
+  .detail{
+    position:absolute;inset:0;background:var(--paper);z-index:5;padding:16px 18px 60px;
+    transform:translateX(100%);transition:transform .22s ease;visibility:hidden
+  }
+  .detail.open{transform:none;visibility:visible}
+}
+@media (min-width:861px){ .back{display:none} }
+
+.listhead{
+  position:sticky;top:0;background:var(--band);border-bottom:1px solid var(--rule);
+  padding:7px var(--pad);font-size:calc(10.5px * var(--fs));color:var(--grey);letter-spacing:.09em;z-index:2
+}
+.listhead .count{font-family:var(--mono)}
+.row{
+  display:block;width:100%;text-align:left;padding:10px var(--pad);border-bottom:1px solid var(--rule);
+  border-left:3px solid transparent
+}
+.row.alt{background:var(--band)}
+.row.mine{border-left-color:var(--navy)}
+.row[aria-current="true"]{background:var(--navy-pale)}
+@media (prefers-color-scheme: dark){ .row[aria-current="true"]{background:#212938} }
+.row .w{font-family:var(--serif);font-size:calc(17.5px * var(--fs));line-height:1.25;color:var(--ink);letter-spacing:.01em}
+.row .t{font-size:calc(12.5px * var(--fs));color:var(--grey);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .src{font-family:var(--mono);font-size:calc(9.5px * var(--fs));color:var(--grey);letter-spacing:.04em;margin-top:3px}
+.row mark{background:var(--navy-pale);color:inherit}
+@media (prefers-color-scheme: dark){ .row mark{background:#2A3550} }
+
+.empty{padding:40px var(--pad);color:var(--grey);font-size:calc(13.5px * var(--fs));line-height:1.7}
+.empty b{display:block;font-family:var(--serif);font-size:calc(18px * var(--fs));color:var(--ink);margin-bottom:9px;font-weight:400;letter-spacing:.01em}
+.empty ol{margin:10px 0 0;padding-left:1.2em}
+.empty .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.empty .acts .btn{font-size:calc(13px * var(--fs))}
+.empty li{margin:4px 0}
+
+/* ---------- entry ---------- */
+.entry .tag{
+  display:inline-block;font-family:var(--mono);font-size:calc(10px * var(--fs));letter-spacing:.06em;
+  padding:2px 6px;border:1px solid var(--rule);color:var(--grey);border-radius:2px;vertical-align:6px
+}
+.entry .tag.mine{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .entry .tag.mine{color:#0E1016} }
+.entry{max-width:38em}
+.entry h1{font-family:var(--serif);font-size:calc(31px * var(--fs));font-weight:400;line-height:1.18;margin:0 0 5px;letter-spacing:.01em}
+.entry .pron{font-family:var(--mono);font-size:calc(12.5px * var(--fs));color:var(--grey);margin-bottom:16px;letter-spacing:.02em}
+
+.entry .trans{white-space:pre-wrap;font-size:calc(15.5px * var(--fs));line-height:1.8}
+.entry .ex{
+  margin-top:18px;padding:12px 14px;background:var(--band);border-left:2px solid var(--rule);
+  white-space:pre-wrap;font-size:calc(13.5px * var(--fs));line-height:1.7;color:var(--ink)
+}
+.entry .ex em{
+  display:block;font-family:var(--mono);font-style:normal;font-size:calc(9.5px * var(--fs));letter-spacing:.16em;text-transform:uppercase;
+  color:var(--grey);margin-bottom:6px
+}
+.entry .foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--rule);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.entry .meta{font-family:var(--mono);font-size:calc(10.5px * var(--fs));color:var(--grey);flex:1 1 auto}
+.back{font-size:calc(13px * var(--fs));color:var(--navy);margin-bottom:14px}
+
+/* ---------- footer ---------- */
+footer{
+  flex:0 0 auto;border-top:1px solid var(--rule);background:var(--band);
+  display:flex;align-items:center;gap:12px;padding:8px var(--pad);flex-wrap:wrap;font-size:calc(11.5px * var(--fs));color:var(--grey)
+}
+footer .spacer{flex:1 1 auto}
+footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
+.fs{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+.fs button{
+  width:30px;height:26px;border:1px solid var(--rule);border-radius:2px;background:var(--paper);
+  color:var(--navy);line-height:1;font-family:var(--serif)
+}
+.fs button:first-child{font-size:calc(11px * var(--fs))}
+.fs button:last-child{font-size:calc(15px * var(--fs))}
+.fs button:active{background:var(--band)}
+.progress{flex:0 0 90px;height:2px;background:var(--rule);position:relative;display:none}
+.progress.on{display:block}
+.progress i{position:absolute;left:0;top:0;bottom:0;background:var(--navy);width:0}
+
+/* ---------- sheet ---------- */
+.veil{
+  position:fixed;inset:0;background:rgba(20,24,34,.42);display:none;z-index:20;
+  align-items:flex-end;justify-content:center
+}
+.veil.on{display:flex}
+.sheet{
+  background:var(--paper);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;
+  border-radius:8px 8px 0 0;padding:18px var(--pad) calc(18px + env(safe-area-inset-bottom));
+  animation:rise .2s ease
+}
+@keyframes rise{from{transform:translateY(20px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .sheet{animation:none} .detail{transition:none} .thumb .cursor{transition:none}
+}
+.sheet h2{font-family:var(--serif);font-size:calc(20px * var(--fs));font-weight:400;margin:0 0 14px}
+.sheet label{display:block;font-size:calc(11px * var(--fs));letter-spacing:.04em;color:var(--grey);margin:12px 0 4px}
+.sheet input,.sheet textarea,.sheet select{
+  width:100%;padding:9px 10px;border:1px solid var(--rule);border-radius:3px;background:var(--paper);font-size:calc(16px * var(--fs))
+}
+.sheet textarea{min-height:88px;resize:vertical;line-height:1.6}
+.sheet .acts{display:flex;gap:8px;margin-top:20px;align-items:center}
+.sheet .acts .spacer{flex:1 1 auto}
+.btn{padding:10px 16px;border-radius:3px;font-size:calc(14px * var(--fs));border:1px solid var(--rule);color:var(--ink)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+@media (prefers-color-scheme: dark){ .btn.primary{color:#0E1016} }
+.btn.danger{color:#9B2C2C;border-color:#E3C4C4}
+.note{font-size:calc(12px * var(--fs));color:var(--grey);line-height:1.6;margin-top:10px}
+.gchips{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px}
+.gchip{
+  font-size:calc(12px * var(--fs));padding:5px 11px;border:1px solid var(--rule);border-radius:2px;color:var(--grey)
+}
+.gchip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .gchip.on{color:#0E1016} }
+.drow{
+  display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--rule)
+}
+.drow .nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:var(--serif);font-size:calc(16px * var(--fs))}
+.drow .n{font-family:var(--mono);font-size:calc(10px * var(--fs));color:var(--grey);flex:0 0 auto}
+.drow .tick{
+  width:26px;height:26px;flex:0 0 auto;border:1px solid var(--rule);border-radius:2px;
+  color:var(--navy);font-size:calc(14px * var(--fs));line-height:1
+}
+.drow .tick.on{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .drow .tick.on{color:#0E1016} }
+.drow .mv{width:26px;height:26px;flex:0 0 auto;color:var(--grey);font-size:calc(13px * var(--fs))}
+.drow.off .nm{color:var(--grey)}
+.drow.missing .nm{color:var(--grey);font-style:italic}
+.note code{font-family:var(--mono);font-size:calc(11px * var(--fs))}
+.out{width:100%;height:160px;font-family:var(--mono);font-size:calc(11px * var(--fs));margin-top:10px;white-space:pre}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--navy);color:#fff;
+  font-size:calc(13px * var(--fs));padding:9px 16px;border-radius:3px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s
+}
+.toast.on{opacity:1}
+@media (prefers-color-scheme: dark){ .toast{color:#0E1016} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <span class="mark"><span class="sub">Tasha’s</span>Lexicon</span>
+    <div class="dicts" id="dicts"></div>
+    <button class="ghost" id="openBtn">辞書を開く</button>
+    <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
+  </div>
+  <div class="searchrow">
+    <div class="field">
+      <input id="q" type="text" enterkeyhint="search" autocomplete="off" autocorrect="off"
+             autocapitalize="none" spellcheck="false" placeholder="見出し語を検索">
+      <button class="clear" id="clear" hidden aria-label="検索語を消す">×</button>
+    </div>
+    <button class="add" id="addBtn">＋ 追加</button>
+  </div>
+  <div class="modes" role="group" aria-label="検索方法">
+    <button id="m-prefix" aria-pressed="true">前方一致</button>
+    <button id="m-exact" aria-pressed="false">完全一致</button>
+    <button id="m-full" aria-pressed="false">訳語も検索</button>
+  </div>
+  <div class="thumb" id="thumb" data-empty="1" role="slider" aria-label="辞書内の位置" tabindex="0"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+</header>
+
+<main>
+  <div class="list" id="list"></div>
+  <div class="detail" id="detail"></div>
+</main>
+
+<footer>
+  <span id="status">辞書が開かれていません</span>
+  <span class="progress" id="progress"><i></i></span>
+  <span class="spacer"></span>
+  <span class="fs">
+    <button id="fsDown" aria-label="文字を小さく">A</button>
+    <button id="fsUp" aria-label="文字を大きく">A</button>
+  </span>
+  <button id="askSetBtn">調べる先</button>
+  <button id="groupBtn">グループ</button>
+  <button id="mineBtn">マイ辞書</button>
+</footer>
+
+<div class="veil" id="veil"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ------------------------------------------------------------------
+   BOCU-1 decoder
+   Binary Ordered Compression for Unicode (Unicode Technical Note #6).
+   PDIC/Unicode stores every string in this encoding.
+   ------------------------------------------------------------------ */
+
+const B1_MIN = 0x21;
+const B1_MIDDLE = 0x90;
+const B1_MAX_TRAIL = 0xff;
+const B1_RESET = 0xff;
+const B1_ASCII_PREV = 0x40;
+
+const B1_TRAIL_CONTROLS_COUNT = 20;
+const B1_TRAIL_BYTE_OFFSET = B1_MIN - B1_TRAIL_CONTROLS_COUNT; // 0x0d
+const TC = (B1_MAX_TRAIL - B1_MIN + 1) + B1_TRAIL_CONTROLS_COUNT; // 243
+const TC2 = TC * TC;
+const TC3 = TC * TC * TC;
+
+const B1_REACH_POS_1 = 63;
+const B1_REACH_NEG_1 = -64;
+const B1_REACH_POS_2 = B1_REACH_POS_1 + 43 * TC;   //   10512
+const B1_REACH_NEG_2 = B1_REACH_NEG_1 - 43 * TC;   //  -10513
+const B1_REACH_POS_3 = B1_REACH_POS_2 + 3 * TC2;   //  187659
+const B1_REACH_NEG_3 = B1_REACH_NEG_2 - 3 * TC2;   // -187660
+
+const B1_START_POS_2 = B1_MIDDLE + B1_REACH_POS_1 + 1; // 0xd0
+const B1_START_POS_3 = B1_START_POS_2 + 43;            // 0xfb
+const B1_START_POS_4 = B1_START_POS_3 + 3;             // 0xfe
+const B1_START_NEG_2 = B1_MIDDLE + B1_REACH_NEG_1;     // 0x50
+const B1_START_NEG_3 = B1_START_NEG_2 - 43;            // 0x25
+const B1_START_NEG_4 = B1_START_NEG_3 - 3;             // 0x22
+
+// 0x00-0x06, 0x0d and 0x1c-0x20 are never used as trail bytes.
+const TRAIL_TO_BYTE = [
+  0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x10, 0x11,
+  0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19,
+  0x1c, 0x1d, 0x1e, 0x1f,
+];
+const BYTE_TO_TRAIL = new Int16Array(256).fill(-1);
+for (let t = 0; t < TRAIL_TO_BYTE.length; t++) BYTE_TO_TRAIL[TRAIL_TO_BYTE[t]] = t;
+for (let b = B1_MIN; b <= 0xff; b++) BYTE_TO_TRAIL[b] = b - B1_TRAIL_BYTE_OFFSET;
+
+function bocu1Prev(c) {
+  if (c >= 0x3040 && c <= 0x309f) return 0x3070;                   // hiragana
+  if (c >= 0x4e00 && c <= 0x9fa5) return 0x4e00 - B1_REACH_NEG_2;  // CJK unified
+  if (c >= 0xac00 && c <= 0xd7a3) return (0xd7a3 + 0xac00) >> 1;   // hangul
+  return (c & ~0x7f) + B1_ASCII_PREV;
+}
+
+/** Decode bytes[start,end) from BOCU-1 into a string. */
+function decodeBocu1(bytes, start, end) {
+  let prev = B1_ASCII_PREV;
+  let out = '';
+  let cps = [];
+  let i = start;
+  const flush = () => {
+    if (cps.length) { out += String.fromCodePoint.apply(null, cps); cps = []; }
+    return out;
+  };
+  while (i < end) {
+    const b = bytes[i++];
+    let c;
+    if (b <= 0x20) {
+      if (b !== 0x20) prev = B1_ASCII_PREV;
+      c = b;
+    } else if (b >= B1_START_NEG_2 && b < B1_START_POS_2) {
+      c = prev + (b - B1_MIDDLE);
+      prev = bocu1Prev(c);
+    } else if (b === B1_RESET) {
+      prev = B1_ASCII_PREV;
+      continue;
+    } else {
+      let diff, count;
+      if (b >= B1_START_POS_2) {
+        if (b < B1_START_POS_3) { diff = (b - B1_START_POS_2) * TC + B1_REACH_POS_1 + 1; count = 1; }
+        else if (b < B1_START_POS_4) { diff = (b - B1_START_POS_3) * TC2 + B1_REACH_POS_2 + 1; count = 2; }
+        else { diff = B1_REACH_POS_3 + 1; count = 3; }
+      } else {
+        if (b >= B1_START_NEG_3) { diff = (b - B1_START_NEG_2) * TC + B1_REACH_NEG_1; count = 1; }
+        else if (b >= B1_START_NEG_4) { diff = (b - B1_START_NEG_3) * TC2 + B1_REACH_NEG_2; count = 2; }
+        else { diff = B1_REACH_NEG_3 - TC3; count = 3; }
+      }
+      if (i + count > end) return flush();
+      for (let k = count; k > 0; k--) {
+        const t = BYTE_TO_TRAIL[bytes[i++]];
+        if (t < 0) return flush();
+        diff += t * (k === 3 ? TC2 : k === 2 ? TC : 1);
+      }
+      c = prev + diff;
+      if (c < 0 || c > 0x10ffff) return flush();
+      prev = bocu1Prev(c);
+    }
+    cps.push(c);
+    if (cps.length >= 4096) flush();
+  }
+  return flush();
+}
+
+/* ------------------------------------------------------------------
+   PDIC/Unicode dictionary (.dic, format 6.10)
+   Layout: header (1KB) | extended header | index | data blocks.
+   ------------------------------------------------------------------ */
+
+const HEADER_SIZE = 1024;
+const BLOCK_SIZE = 1024;
+
+/** Compare by code point; JS `<` compares UTF-16 code units. */
+function cmpCodePoint(a, b) {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    let x = a.charCodeAt(i), y = b.charCodeAt(i);
+    if (x === y) continue;
+    if (x >= 0xd800 && x < 0xdc00) x = a.codePointAt(i);
+    if (y >= 0xd800 && y < 0xdc00) y = b.codePointAt(i);
+    return x < y ? -1 : 1;
+  }
+  return a.length === b.length ? 0 : (a.length < b.length ? -1 : 1);
+}
+
+/** PDIC derives the sort key from the headword: lower case, hyphen to space. */
+function toKeyword(word) {
+  return word.toLowerCase().replace(/-/g, ' ');
+}
+
+class PdicDictionary {
+  constructor(reader, name) {
+    this.reader = reader;   // { size, read(offset, length) -> Promise<Uint8Array> }
+    this.name = name;
+    this.index = [];        // [{ block, key }] in dictionary order
+    this.nword = 0;
+  }
+
+  async open() {
+    const head = await this.reader.read(0, HEADER_SIZE);
+    if (head.length < HEADER_SIZE) throw new Error('ファイルが小さすぎます。PDICの辞書ではないようです。');
+    const dv = new DataView(head.buffer, head.byteOffset, head.byteLength);
+
+    let sig = '';
+    for (let i = 0; i < 100; i++) sig += String.fromCharCode(head[i]);
+    if (!sig.includes('Dictionary for PDIC')) {
+      throw new Error('PDICの辞書ファイルではないようです。拡張子が .dic のファイルを選んでください。');
+    }
+
+    this.version = dv.getUint16(0x8c, true);
+    const major = this.version >> 8;
+    if (major < 6) {
+      throw new Error(
+        `辞書形式が ${major}.${(this.version & 0xff).toString().padStart(2, '0')} です。` +
+        '読めるのはPDIC/Unicode形式（6.xx）だけです。Windows版PDIC/Unicodeで変換してから読み込んでください。'
+      );
+    }
+    this.dictype = head[0xa5];
+    if (this.dictype & 0x40) throw new Error('暗号化された辞書は開けません。');
+
+    const indexBlock = dv.getUint16(0x94, true);
+    this.nword = dv.getUint32(0xa0, true);
+    this.indexBlkbit = head[0xb6];
+    this.extheader = dv.getUint32(0xb8, true);
+    this.nindex = dv.getUint32(0xc0, true);
+    this.nblock = dv.getUint32(0xc4, true);
+
+    this.indexStart = HEADER_SIZE + this.extheader;
+    this.dataStart = this.indexStart + BLOCK_SIZE * indexBlock;
+
+    const buf = await this.reader.read(this.indexStart, BLOCK_SIZE * indexBlock);
+    const idv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    const wide = this.indexBlkbit === 1;
+    const index = [];
+    let p = 0;
+    for (let n = 0; n < this.nindex; n++) {
+      if (p + (wide ? 4 : 2) > buf.length) break;
+      const block = wide ? idv.getUint32(p, true) : idv.getUint16(p, true);
+      p += wide ? 4 : 2;
+      const s = p;
+      while (p < buf.length && buf[p] !== 0) p++;
+      if (block === 0 && p === s && n > 0) break; // 0x00000000 end marker
+      const internal = decodeBocu1(buf, s, p);
+      const tab = internal.indexOf('\t');
+      index.push({ block, key: tab >= 0 ? internal.slice(0, tab) : internal });
+      p++;
+    }
+    this.index = index;
+    return this;
+  }
+
+  /** Parse one data block that starts at buf[base]. */
+  parseBlock(buf, base) {
+    if (base + 2 > buf.length) return [];
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    const raw = dv.getUint16(base, true);
+    const wideField = (raw & 0x8000) !== 0;
+    const nblk = raw & 0x7fff;
+    if (nblk === 0) return [];                     // free block
+    const end = Math.min(base + BLOCK_SIZE * nblk, buf.length);
+
+    const entries = [];
+    const fw = wideField ? 4 : 2;
+    let p = base + 2;
+    let prevHead = new Uint8Array(0);
+
+    while (p + fw <= end) {
+      const len = wideField ? dv.getUint32(p, true) : dv.getUint16(p, true);
+      p += fw;
+      if (len === 0) break;                        // end-of-block marker
+      if (p + 2 > end) break;
+      const omit = buf[p];
+      const attr = buf[p + 1];
+      p += 2;
+      const bodyEnd = Math.min(p + len, end);
+
+      let q = p;
+      while (q < bodyEnd && buf[q] !== 0) q++;
+      const head = new Uint8Array(omit + (q - p));
+      head.set(prevHead.subarray(0, omit), 0);
+      head.set(buf.subarray(p, q), omit);
+      prevHead = head;
+      q++;
+
+      if (attr === 0xff) { p = bodyEnd; continue; } // obsolete reference entry
+
+      const internal = decodeBocu1(head, 0, head.length);
+      const tab = internal.indexOf('\t');
+      const entry = {
+        key: tab >= 0 ? internal.slice(0, tab) : internal,
+        word: tab >= 0 ? internal.slice(tab + 1) : internal,
+        trans: '', example: '', pron: '', level: attr & 0x0f,
+      };
+
+      if (attr & 0x10) {
+        let r = q;
+        while (r < bodyEnd && buf[r] !== 0) r++;
+        entry.trans = decodeBocu1(buf, q, r);
+        r++;
+        while (r < bodyEnd) {
+          const ea = buf[r++];
+          if (ea === 0x80 || ea === 0x00) break;
+          const type = ea & 0x0f;
+          if (ea & 0x10) {                          // binary: compressed or linked
+            if (r + fw > bodyEnd) break;
+            const elen = wideField ? dv.getUint32(r, true) : dv.getUint16(r, true);
+            r += fw + elen;
+          } else {
+            let e = r;
+            while (e < bodyEnd && buf[e] !== 0) e++;
+            const text = decodeBocu1(buf, r, e);
+            if (type === 1) entry.example = text;
+            else if (type === 2) entry.pron = text;
+            r = e + 1;
+          }
+        }
+      } else {
+        entry.trans = decodeBocu1(buf, q, bodyEnd);
+      }
+
+      entries.push(entry);
+      p = bodyEnd;
+    }
+    return entries;
+  }
+
+  async readBlock(blockNo) {
+    const offset = this.dataStart + BLOCK_SIZE * blockNo;
+    let buf = await this.reader.read(offset, BLOCK_SIZE);
+    if (buf.length < 2) return [];
+    const raw = buf[0] | (buf[1] << 8);
+    const nblk = raw & 0x7fff;
+    if (nblk > 1) buf = await this.reader.read(offset, BLOCK_SIZE * nblk);
+    return this.parseBlock(buf, 0);
+  }
+
+  /** Index position of the last block whose first headword is <= key. */
+  locate(key) {
+    const idx = this.index;
+    if (!idx.length) return 0;
+    let lo = 0, hi = idx.length - 1, ans = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (cmpCodePoint(idx[mid].key, key) <= 0) { ans = mid; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    return ans;
+  }
+
+  /** Headword search. mode: 'prefix' | 'exact'. */
+  async searchHeadword(query, mode = 'prefix', limit = 300) {
+    const key = toKeyword(query.trim());
+    if (!key) return [];
+    const results = [];
+    const start = this.locate(key);
+    for (let i = start; i < this.index.length; i++) {
+      if (i > start) {
+        const bk = this.index[i].key;
+        if (cmpCodePoint(bk, key) > 0 && !bk.startsWith(key)) break;
+      }
+      const entries = await this.readBlock(this.index[i].block);
+      let past = false;
+      for (const e of entries) {
+        if (e.key.startsWith(key)) {
+          if (mode === 'exact') { if (e.key === key) results.push(e); }
+          else results.push(e);
+        } else if (cmpCodePoint(e.key, key) > 0) { past = true; break; }
+        if (results.length >= limit) return results;
+      }
+      if (past) break;
+    }
+    return results;
+  }
+
+  /** List entries starting at a position in the index (for browsing). */
+  async listFrom(indexPos, limit = 60) {
+    const out = [];
+    for (let i = Math.max(0, indexPos); i < this.index.length && out.length < limit; i++) {
+      const entries = await this.readBlock(this.index[i].block);
+      for (const e of entries) {
+        out.push(e);
+        if (out.length >= limit) break;
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Sequential scan over every block.
+   * onChunk(entries, progress) may return true to stop.
+   */
+  async scan(onChunk) {
+    const blocks = this.index.map(e => e.block).sort((a, b) => a - b);
+    const WINDOW = 2 * 1024 * 1024;
+    const SLACK = 64 * 1024;
+    for (let i = 0; i < blocks.length;) {
+      const first = blocks[i];
+      let j = i;
+      while (j + 1 < blocks.length && (blocks[j + 1] - first + 1) * BLOCK_SIZE <= WINDOW) j++;
+      const offset = this.dataStart + first * BLOCK_SIZE;
+      const length = (blocks[j] - first + 1) * BLOCK_SIZE + SLACK;
+      const win = await this.reader.read(offset, length);
+      for (let k = i; k <= j; k++) {
+        const base = (blocks[k] - first) * BLOCK_SIZE;
+        let entries;
+        if (base + BLOCK_SIZE <= win.length) entries = this.parseBlock(win, base);
+        else entries = await this.readBlock(blocks[k]);
+        if (entries.length) {
+          const stop = await onChunk(entries, (k + 1) / blocks.length);
+          if (stop) return;
+        }
+      }
+      i = j + 1;
+    }
+  }
+}
+
+
+/* ------------------------------------------------------------------
+   BOCU-1 encoder and PDIC/Unicode 6.10 dictionary writer.
+   Lets the app hand back a real .dic that PDIC on Windows can open.
+   ------------------------------------------------------------------ */
+
+function b1Trail(t) { return t < 20 ? TRAIL_TO_BYTE[t] : t + B1_TRAIL_BYTE_OFFSET; }
+
+function encodeBocu1(str) {
+  const out = [];
+  let prev = B1_ASCII_PREV;
+  for (const ch of str) {
+    const c = ch.codePointAt(0);
+    if (c <= 0x20) { out.push(c); if (c !== 0x20) prev = B1_ASCII_PREV; continue; }
+    let d = c - prev;
+    prev = bocu1Prev(c);
+    if (d >= B1_REACH_NEG_1 && d <= B1_REACH_POS_1) { out.push(B1_MIDDLE + d); continue; }
+    if (d > 0) {
+      if (d <= B1_REACH_POS_2) {
+        d -= B1_REACH_POS_1 + 1;
+        out.push(B1_START_POS_2 + Math.floor(d / TC), b1Trail(d % TC));
+      } else if (d <= B1_REACH_POS_3) {
+        d -= B1_REACH_POS_2 + 1;
+        out.push(B1_START_POS_3 + Math.floor(d / TC2), b1Trail(Math.floor(d / TC) % TC), b1Trail(d % TC));
+      } else {
+        d -= B1_REACH_POS_3 + 1;
+        out.push(B1_START_POS_4, b1Trail(Math.floor(d / TC2) % TC), b1Trail(Math.floor(d / TC) % TC), b1Trail(d % TC));
+      }
+    } else {
+      if (d >= B1_REACH_NEG_2) {
+        d -= B1_REACH_NEG_1;
+        const q = Math.floor(d / TC);
+        out.push(B1_START_NEG_2 + q, b1Trail(d - q * TC));
+      } else if (d >= B1_REACH_NEG_3) {
+        d -= B1_REACH_NEG_2;
+        const q = Math.floor(d / TC), r = d - q * TC;
+        const q2 = Math.floor(q / TC), r2 = q - q2 * TC;
+        out.push(B1_START_NEG_3 + q2, b1Trail(r2), b1Trail(r));
+      } else {
+        d -= B1_REACH_NEG_3;
+        const q = Math.floor(d / TC), r = d - q * TC;
+        const q2 = Math.floor(q / TC), r2 = q - q2 * TC;
+        const q3 = Math.floor(q2 / TC), r3 = q2 - q3 * TC;
+        out.push(B1_MIN, b1Trail(r3), b1Trail(r2), b1Trail(r));
+      }
+    }
+  }
+  return Uint8Array.from(out);
+}
+
+function cmpBytes(a, b) {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
+  return a.length - b.length;
+}
+
+/** Build a PDIC/Unicode 6.10 dictionary from plain entry objects. */
+function buildDic(entries) {
+  const recs = entries
+    .filter(e => e.word && e.word.trim())
+    .map(e => {
+      const word = e.word.trim();
+      const internal = toKeyword(word) + '\t' + word;
+      return {
+        head: encodeBocu1(internal),
+        trans: encodeBocu1(e.trans || ''),
+        example: e.example ? encodeBocu1(e.example) : null,
+        pron: e.pron ? encodeBocu1(e.pron) : null,
+        level: (e.level | 0) & 0x0f,
+      };
+    })
+    .sort((a, b) => cmpBytes(a.head, b.head));
+
+  // one record -> its on-disk bytes, given how much of the headword is shared
+  const makeRecord = (r, prevHead, wide) => {
+    let omit = 0;
+    while (omit < 255 && omit < r.head.length && omit < prevHead.length &&
+           r.head[omit] === prevHead[omit]) omit++;
+    const ext = r.example || r.pron;
+    const body = [];
+    for (let i = omit; i < r.head.length; i++) body.push(r.head[i]);
+    body.push(0);
+    for (const b of r.trans) body.push(b);
+    if (ext) {
+      body.push(0);
+      if (r.example) { body.push(0x01); for (const b of r.example) body.push(b); body.push(0); }
+      if (r.pron) { body.push(0x02); for (const b of r.pron) body.push(b); body.push(0); }
+      body.push(0x80);
+    }
+    const attr = r.level | (ext ? 0x10 : 0);
+    const head = wide ? [body.length & 0xff, (body.length >> 8) & 0xff,
+                         (body.length >> 16) & 0xff, (body.length >> 24) & 0xff]
+                      : [body.length & 0xff, (body.length >> 8) & 0xff];
+    return { bytes: [...head, omit, attr, ...body], first: r.head };
+  };
+
+  const blocks = [];   // { payload:number[], first:Uint8Array, wide:boolean }
+  let cur = null, prevHead = new Uint8Array(0);
+  for (const r of recs) {
+    const big = r.trans.length + (r.example ? r.example.length : 0) + r.head.length > 60000;
+    if (big) {
+      if (cur) { blocks.push(cur); cur = null; prevHead = new Uint8Array(0); }
+      const rec = makeRecord(r, new Uint8Array(0), true);
+      blocks.push({ payload: rec.bytes, first: r.head, wide: true });
+      prevHead = new Uint8Array(0);
+      continue;
+    }
+    let rec = makeRecord(r, prevHead, false);
+    if (cur && 2 + cur.payload.length + rec.bytes.length + 2 > 1024) {
+      blocks.push(cur); cur = null; prevHead = new Uint8Array(0);
+      rec = makeRecord(r, prevHead, false);
+    }
+    if (!cur) cur = { payload: [], first: r.head, wide: false };
+    cur.payload.push(...rec.bytes);
+    prevHead = r.head;
+  }
+  if (cur) blocks.push(cur);
+
+  // lay the blocks out and note where each one starts
+  const placed = [];
+  let blockNo = 0, dataLen = 0;
+  for (const b of blocks) {
+    const size = 2 + b.payload.length + (b.wide ? 4 : 2);
+    const nblk = Math.ceil(size / 1024);
+    placed.push({ ...b, no: blockNo, nblk });
+    blockNo += nblk;
+    dataLen += nblk * 1024;
+  }
+
+  let indexLen = 4;
+  for (const b of placed) indexLen += 2 + b.first.length + 1;
+  const indexBlocks = Math.max(1, Math.ceil(indexLen / 1024));
+
+  const total = 1024 + indexBlocks * 1024 + dataLen;
+  const buf = new Uint8Array(total);
+  const dv = new DataView(buf.buffer);
+
+  const SIG = '             =============== Dictionary for PDIC ===============';
+  for (let i = 0; i < SIG.length; i++) buf[i] = SIG.charCodeAt(i);
+  dv.setUint16(0x8c, 0x060a, true);              // format 6.10
+  dv.setUint16(0x94, indexBlocks, true);
+  dv.setUint32(0xa0, recs.length, true);
+  buf[0xa5] = 0x09;                              // BOCU-1, compression capable
+  buf[0xb6] = 0;                                 // 16-bit block numbers in the index
+  dv.setUint32(0xb8, 0, true);                   // no extended header
+  dv.setUint32(0xbc, 0xffffffff, true);          // no free blocks
+  dv.setUint32(0xc0, placed.length, true);
+  dv.setUint32(0xc4, blockNo, true);
+  for (let i = 0xd8; i < 0xe0; i++) buf[i] = Math.floor(Math.random() * 256);
+
+  let p = 1024;
+  for (const b of placed) {
+    dv.setUint16(p, b.no, true); p += 2;
+    buf.set(b.first, p); p += b.first.length;
+    buf[p++] = 0;
+  }
+
+  const dataStart = 1024 + indexBlocks * 1024;
+  for (const b of placed) {
+    const at = dataStart + b.no * 1024;
+    dv.setUint16(at, b.nblk | (b.wide ? 0x8000 : 0), true);
+    buf.set(Uint8Array.from(b.payload), at + 2);
+    // trailing bytes stay zero, which is the end-of-block marker
+  }
+  return buf;
+}
+
+
+
+/* ==================================================================
+   storage: Claude artifact storage when present, otherwise the
+   browser's own store. Falls back to memory so nothing ever throws.
+   ================================================================== */
+const store = (() => {
+  const ws = (typeof window !== 'undefined' && window.storage
+              && typeof window.storage.get === 'function') ? window.storage : null;
+  const mem = new Map();
+  let ls = null;
+  try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); ls = localStorage; } catch (_) {}
+  return {
+    kind: ws ? 'claude' : (ls ? 'local' : 'memory'),
+    async get(k) {
+      if (ws) { try { const r = await ws.get(k, false); return r ? r.value : null; } catch (_) { return null; } }
+      if (ls) { try { return ls.getItem(k); } catch (_) { return null; } }
+      return mem.has(k) ? mem.get(k) : null;
+    },
+    async set(k, v) {
+      if (ws) { try { await ws.set(k, v, false); return true; } catch (_) { return false; } }
+      if (ls) { try { ls.setItem(k, v); return true; } catch (_) { return false; } }
+      mem.set(k, v); return true;
+    },
+  };
+})();
+
+const KEY_DICT = 'lexicon:userdict:v1';
+const KEY_PREF = 'lexicon:prefs:v1';
+const KEY_DICT_OLD = 'jiten:userdict:v1';
+const KEY_GROUPS = 'lexicon:groups:v1';
+
+/* ==================================================================
+   state
+   ================================================================== */
+const S = {
+  dicts: [],            // [{ id, name, dict }]
+  active: 0,            // which dictionary the thumb index browses
+  mine: [],             // user entries
+  mode: 'prefix',
+  fs: 1,
+  ext: 'chatgpt',
+  tpl: '「{word}」の意味と定訳を教えてください。専門分野によって訳が分かれる場合は分野ごとに。英日の対訳と、短い用例をひとつ添えてください。',
+  groups: [{ id: 'all', name: 'すべて', files: null }],
+  activeGroup: 'all',
+  results: [],
+  selected: null,
+  scanning: false,
+  cancel: false,
+  seq: 0,
+};
+
+const PLATE = `<svg class="plate" viewBox="0 0 340 214" role="img" aria-label="小口に爪かけのついた辞書">
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".3" stroke-width="1">
+      <path d="M170 150 C130 158 82 160 44 148"/>
+      <path d="M170 154 C132 162 84 164 46 152"/>
+      <path d="M170 158 C134 166 86 168 48 156"/>
+      <path d="M170 150 C210 158 258 160 296 148"/>
+      <path d="M170 154 C208 162 256 164 294 152"/>
+      <path d="M170 158 C206 166 254 168 292 156"/>
+    </g>
+    <path stroke-width="1.5" d="M170 62 C132 48 84 46 44 60 L44 148 C82 160 130 158 170 150 Z"/>
+    <path stroke-width="1.5" d="M170 62 C208 48 256 46 296 60 L296 148 C258 160 210 158 170 150 Z"/>
+    <path stroke-width="1.5" d="M170 62 L170 150"/>
+    <g opacity=".4" stroke-width=".9">
+      <path d="M58 80 C92 76 128 75 148 74"/>
+      <path d="M58 89 C92 85 128 84 136 83"/>
+      <path d="M58 98 C92 94 128 92 152 92"/>
+      <path d="M58 107 C92 102 128 101 141 100"/>
+      <path d="M58 116 C92 111 128 110 149 109"/>
+      <path d="M58 125 C92 120 128 119 133 118"/>
+      <path d="M58 134 C92 128 128 128 145 126"/>
+    </g>
+    <g opacity=".55" stroke-width=".9">
+      <path stroke-width="2" d="M190 80 C206 77 220 76 232 75"/>
+      <path d="M197 91 C214 88 248 87 268 86"/>
+      <path d="M190 100 C214 97 248 96 254 95"/>
+      <path d="M190 109 C214 105 248 104 276 103"/>
+      <path d="M197 118 C214 114 248 113 261 112"/>
+      <path d="M190 127 C214 122 248 121 249 120"/>
+      <path d="M190 136 C214 131 248 130 268 129"/>
+    </g>
+    <g opacity=".85" stroke-width="1.2">
+      <path d="M296 72 Q285 78 296 84"/>
+      <path d="M296 90 Q285 96 296 102"/>
+      <path d="M296 108 Q285 114 296 120"/>
+      <path d="M296 126 Q285 132 296 138"/>
+    </g>
+  </g>
+  <g class="ink" opacity=".7" font-size="8" letter-spacing="1">
+      <text x="279" y="81" text-anchor="middle">a</text>
+      <text x="279" y="99" text-anchor="middle">m</text>
+      <text x="279" y="117" text-anchor="middle">t</text>
+      <text x="279" y="135" text-anchor="middle">z</text>
+  </g>
+  <path class="ribbon" d="M170 150 L165 184 L170 177 L175 184 Z"/>
+</svg>`;
+
+function plate(caption) {
+  return `<div class="plate-wrap fade-in"><div class="plate-frame">${PLATE}</div>
+    <div class="plate-cap">${caption}</div></div>`;
+}
+const SWELL = '<svg class="swell" viewBox="0 0 64 7" aria-hidden="true"><path d="M0 3.5 C18 .6 46 .6 64 3.5 C46 6.4 18 6.4 0 3.5 Z"/></svg>';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 1900);
+}
+
+/* ==================================================================
+   opening dictionaries
+   ================================================================== */
+function curGroup() {
+  return S.groups.find(g => g.id === S.activeGroup) || S.groups[0];
+}
+
+/** Dictionaries the current group searches, in the group's own order. */
+function activeDicts() {
+  const g = curGroup();
+  if (!g.files) return S.dicts;
+  const out = [];
+  for (const name of g.files) {
+    const d = S.dicts.find(x => x.name === name);
+    if (d) out.push(d);
+  }
+  return out;
+}
+
+/** Names the group expects but that aren't open in this session. */
+function missingDicts() {
+  const g = curGroup();
+  if (!g.files) return [];
+  return g.files.filter(n => !S.dicts.some(d => d.name === n));
+}
+
+async function saveGroups() {
+  await store.set(KEY_GROUPS, JSON.stringify({ groups: S.groups, active: S.activeGroup }));
+}
+
+async function loadGroups() {
+  try {
+    const raw = await store.get(KEY_GROUPS);
+    if (raw) {
+      const j = JSON.parse(raw);
+      if (Array.isArray(j.groups) && j.groups.length) S.groups = j.groups;
+      if (j.active && S.groups.some(g => g.id === j.active)) S.activeGroup = j.active;
+    }
+  } catch (_) {}
+  if (!S.groups.some(g => g.id === 'all')) {
+    S.groups.unshift({ id: 'all', name: 'すべて', files: null });
+  }
+}
+
+function makeReader(file) {
+  return {
+    size: file.size,
+    async read(offset, length) {
+      const end = Math.min(file.size, offset + length);
+      if (end <= offset) return new Uint8Array(0);
+      return new Uint8Array(await file.slice(offset, end).arrayBuffer());
+    },
+  };
+}
+
+$('openBtn').onclick = () => $('file').click();
+$('file').onchange = async (ev) => {
+  const files = [...ev.target.files];
+  ev.target.value = '';
+  for (const f of files) {
+    try {
+      $('status').textContent = `${f.name} を読み込み中…`;
+      const dict = await new PdicDictionary(makeReader(f), f.name.replace(/\.dic$/i, '')).open();
+      dict.cache = new Map();
+      const rawRead = dict.readBlock.bind(dict);
+      dict.readBlock = async (no) => {
+        if (dict.cache.has(no)) return dict.cache.get(no);
+        const r = await rawRead(no);
+        if (dict.cache.size > 400) dict.cache.clear();
+        dict.cache.set(no, r);
+        return r;
+      };
+      S.dicts.push({ id: Math.random().toString(36).slice(2), name: dict.name, dict });
+      const g = curGroup();
+      if (g.files && !g.files.includes(dict.name)) g.files.push(dict.name);
+      S.active = Math.max(0, activeDicts().findIndex(d => d.name === dict.name));
+      toast(`${dict.name} を開きました`);
+    } catch (e) {
+      toast(e.message || '辞書を開けませんでした');
+      $('status').textContent = e.message || '辞書を開けませんでした';
+      renderChips(); return;
+    }
+  }
+  await saveGroups();
+  renderChips(); renderThumb(); updateStatus(); run();
+};
+
+function renderChips() {
+  const el = $('dicts');
+  el.innerHTML = activeDicts().map((d, i) =>
+    `<button class="chip${i === S.active ? ' on' : ''}" data-i="${i}">
+       <b>${esc(d.name)}</b><span class="n">${d.dict.nword.toLocaleString()}</span>
+     </button>`).join('');
+  el.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    S.active = +b.dataset.i; renderChips(); renderThumb();
+  });
+}
+
+function updateStatus() {
+  const ds = activeDicts();
+  const words = ds.reduce((n, d) => n + d.dict.nword, 0);
+  const parts = [];
+  if (ds.length) parts.push(`${ds.length}辞書 ${words.toLocaleString()}語`);
+  parts.push(`マイ辞書 ${S.mine.length}語`);
+  $('status').textContent = parts.join(' ／ ');
+  const gb = $('groupBtn');
+  if (gb) gb.textContent = 'グループ：' + curGroup().name;
+}
+
+/* ==================================================================
+   thumb index — drag along the edge to riffle through the dictionary
+   ================================================================== */
+function renderThumb() {
+  const el = $('thumb');
+  const d = activeDicts()[S.active];
+  if (!d || !d.dict.index.length) { el.dataset.empty = '1'; el.innerHTML = ''; return; }
+  el.dataset.empty = '0';
+  const idx = d.dict.index;
+  let marks = [];
+  let last = null;
+  for (let i = 0; i < idx.length; i++) {
+    const ch = ([...(idx[i].key || ' ')][0]) || ' ';
+    if (ch !== last) { marks.push({ ch, at: i }); last = ch; }
+  }
+  if (marks.length < 10) {
+    // Too few distinct initials to notch by letter; sample evenly instead.
+    const n = Math.min(14, idx.length);
+    marks = Array.from({ length: n }, (_, k) => {
+      const at = Math.floor(k * idx.length / n);
+      return { ch: [...(idx[at].key || '')].slice(0, 2).join(''), at };
+    });
+  }
+  const step = Math.ceil(marks.length / 28) || 1;
+  const shown = marks.filter((_, i) => i % step === 0);
+  el.innerHTML = shown.map(m =>
+    `<span class="notch" style="left:${(m.at / idx.length * 100).toFixed(2)}%"><i></i><b>${esc(m.ch)}</b></span>`
+  ).join('') + '<span class="cursor" id="cursor" style="left:0%"></span>';
+}
+
+function moveCursor(ratio) {
+  const c = $('cursor');
+  if (c) c.style.left = (Math.max(0, Math.min(1, ratio)) * 100).toFixed(2) + '%';
+  $('thumb').setAttribute('aria-valuenow', Math.round(ratio * 100));
+}
+
+(function bindThumb() {
+  const el = $('thumb');
+  let dragging = false, busy = false, pending = null;
+  const jump = async (clientX) => {
+    const d = activeDicts()[S.active];
+    if (!d) return;
+    if (busy) { pending = clientX; return; }
+    busy = true;
+    const r = el.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    moveCursor(ratio);
+    const pos = Math.min(d.dict.index.length - 1, Math.floor(ratio * d.dict.index.length));
+    const entries = await d.dict.listFrom(pos, 60);
+    S.results = entries.map(e => ({ ...e, src: d.name }));
+    S.selected = null;
+    renderList(`${d.name} · ${esc(d.dict.index[pos].key.slice(0, 12) || '—')} 付近`);
+    busy = false;
+    if (pending !== null) { const x = pending; pending = null; jump(x); }
+  };
+  el.addEventListener('pointerdown', e => {
+    dragging = true; el.setPointerCapture(e.pointerId);
+    $('cursor') && $('cursor').classList.add('dragging'); jump(e.clientX);
+  });
+  el.addEventListener('pointermove', e => { if (dragging) jump(e.clientX); });
+  el.addEventListener('pointerup', e => {
+    dragging = false; $('cursor') && $('cursor').classList.remove('dragging');
+  });
+  el.addEventListener('keydown', e => {
+    const d = activeDicts()[S.active]; if (!d) return;
+    const cur = +el.getAttribute('aria-valuenow') || 0;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      const next = Math.max(0, Math.min(100, cur + (e.key === 'ArrowRight' ? 2 : -2)));
+      jump(r.left + r.width * next / 100);
+    }
+  });
+})();
+
+/* ==================================================================
+   search
+   ================================================================== */
+const q = $('q');
+let timer = null;
+q.addEventListener('input', () => {
+  $('clear').hidden = !q.value;
+  clearTimeout(timer);
+  timer = setTimeout(run, S.mode === 'full' ? 380 : 130);
+});
+$('clear').onclick = () => { q.value = ''; $('clear').hidden = true; run(); q.focus(); };
+
+for (const m of ['prefix', 'exact', 'full']) {
+  $('m-' + m).onclick = () => {
+    S.mode = m;
+    for (const n of ['prefix', 'exact', 'full'])
+      $('m-' + n).setAttribute('aria-pressed', String(n === m));
+    savePrefs();
+    run();
+  };
+}
+
+function searchMine(query) {
+  const k = toKeyword(query);
+  return S.mine.filter(e => {
+    if (S.mode === 'exact') return toKeyword(e.word) === k;
+    if (S.mode === 'prefix') return toKeyword(e.word).startsWith(k);
+    return (e.word + '\n' + e.trans + '\n' + e.example + '\n' + e.pron).toLowerCase().includes(k);
+  }).map(e => ({ ...e, mine: true, src: 'マイ辞書' }));
+}
+
+async function run() {
+  const query = q.value.trim();
+  const seq = ++S.seq;
+  S.cancel = true;
+  if (!query) {
+    S.results = S.mine.slice(0, 300).map(e => ({ ...e, mine: true, src: 'マイ辞書' }));
+    renderList(S.mine.length ? 'マイ辞書' : '');
+    return;
+  }
+  const out = searchMine(query);
+  if (S.mode === 'full') { await runFullText(query, out, seq); return; }
+  for (const d of activeDicts()) {
+    const hits = await d.dict.searchHeadword(query, S.mode, 300);
+    if (seq !== S.seq) return;
+    for (const h of hits) out.push({ ...h, src: d.name });
+  }
+  S.results = out;
+  S.selected = null;
+  renderList(`「${esc(query)}」${S.mode === 'exact' ? 'に一致' : 'で始まる語'}`);
+  const d = activeDicts()[S.active];
+  if (d && d.dict.index.length) moveCursor(d.dict.locate(toKeyword(query)) / d.dict.index.length);
+}
+
+async function runFullText(query, seed, seq) {
+  const needle = query.toLowerCase();
+  const out = seed;
+  S.results = out;
+  renderList(`「${esc(query)}」を全文検索中…`);
+  S.cancel = false; S.scanning = true;
+  const bar = $('progress'); bar.classList.add('on');
+  for (const d of activeDicts()) {
+    let last = 0;
+    await d.dict.scan(async (entries, p) => {
+      if (seq !== S.seq) return true;
+      for (const e of entries) {
+        if ((e.word + '\n' + e.trans + '\n' + e.example).toLowerCase().includes(needle)) {
+          out.push({ ...e, src: d.name });
+          if (out.length > 800) return true;
+        }
+      }
+      bar.firstElementChild.style.width = (p * 100).toFixed(1) + '%';
+      if (Date.now() - last > 120) {
+        last = Date.now();
+        renderList(`「${esc(query)}」を全文検索中… ${Math.round(p * 100)}%`);
+        await new Promise(r => setTimeout(r, 0));
+      }
+      return false;
+    });
+    if (seq !== S.seq) { bar.classList.remove('on'); return; }
+  }
+  S.scanning = false; bar.classList.remove('on');
+  bar.firstElementChild.style.width = '0%';
+  renderList(`「${esc(query)}」を含む語`);
+}
+
+/* ==================================================================
+   rendering
+   ================================================================== */
+function snippet(e, query) {
+  let t = (e.trans || '').replace(/\s+/g, ' ').trim();
+  if (S.mode === 'full' && query) {
+    const i = t.toLowerCase().indexOf(query.toLowerCase());
+    if (i > 30) t = '…' + t.slice(i - 20);
+  }
+  return t.slice(0, 90);
+}
+
+function renderList(headline) {
+  const el = $('list');
+  if (headline !== undefined) S.headline = headline;
+  else headline = S.headline;
+  const query = q.value.trim();
+  if (!S.results.length) {
+    el.innerHTML = emptyState(headline);
+    bindFallbackActions();
+    return;
+  }
+  const rows = S.results.map((e, i) => {
+    const w = esc(e.word);
+    return `<button class="row${e.mine ? ' mine' : ''}${i % 2 ? ' alt' : ''}" data-i="${i}"
+              ${S.selected === i ? 'aria-current="true"' : ''}>
+      <span class="w">${w}</span>
+      <span class="t">${esc(snippet(e, query))}</span>
+      <span class="src">${esc(e.src)}${e.pron ? ' · ' + esc(e.pron) : ''}</span>
+    </button>`;
+  }).join('');
+  el.innerHTML =
+    `<div class="listhead">${headline || '結果'} <span class="count">${S.results.length}${S.results.length >= 300 ? '+' : ''}</span></div>` + rows;
+  el.querySelectorAll('.row').forEach(b => b.onclick = () => select(+b.dataset.i));
+  bindFallbackActions();
+  el.scrollTop = 0;
+}
+
+function detailPlaceholder() {
+  const where = store.kind === 'memory'
+    ? 'この画面を閉じると消えます。書き出して保存してください。'
+    : '追加した用語はこの端末に残ります。';
+  $('detail').innerHTML = plate('Fig. I — 小口の爪かけ') + `<div class="empty" style="padding:0;max-width:34em;margin:0 auto;text-align:center">
+    <b>語を選ぶと、ここに表示されます</b>
+    辞書ファイルは開くたびに選び直します。iOSがアプリにファイルを覚えさせないためで、
+    読み込みは索引だけを見るので一瞬で終わります。${where}</div>`;
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (_) {}
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (_) {}
+  ta.remove();
+  return ok;
+}
+
+function bindFallbackActions() {
+  const word = () => q.value.trim();
+  if ($('e-ask')) $('e-ask').onclick = () => askExternal(word());
+  if ($('e-add')) $('e-add').onclick = () => openForm({ word: word() });
+  if ($('e-copy')) $('e-copy').onclick = async () => {
+    toast(await copyText(askPrompt(word())) ? '質問文をコピーしました' : 'コピーできませんでした');
+  };
+}
+
+function emptyState(headline) {
+  if (headline && headline.includes('検索中')) return `<div class="listhead">${headline}</div>`;
+  if (q.value.trim()) {
+    const svc = EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt;
+    return `<div class="listhead">${headline || ''} <span class="count">0</span></div>
+      <div class="empty"><b>一致する語がありません</b>
+      検索方法を「訳語も検索」に変えると、本文からも探せます。
+      <div class="acts">
+        <button class="btn primary" id="e-ask">${esc(svc.name)}に聞く</button>
+        <button class="btn" id="e-copy">質問文をコピー</button>
+        <button class="btn" id="e-add">マイ辞書に追加</button>
+      </div></div>`;
+  }
+  if (!S.dicts.length) {
+    return plate('Fig. I — 小口の爪かけ') + `<div class="empty"><b>辞書を開いてください</b>
+      PDIC/Unicode形式の <code>.dic</code> ファイルをそのまま読みます。ファイルはこの端末から出ません。
+      <ol>
+        <li>iPadの「ファイル」アプリに .dic を入れる（iCloud Driveでも可）</li>
+        <li>右上の「辞書を開く」から選ぶ</li>
+        <li>複数選べば串刺し検索になります</li>
+      </ol>
+      辞書がなくても、マイ辞書だけで用語集として使えます。</div>`;
+  }
+  return `<div class="empty"><b>検索するか、上のバーを指でなぞってください</b>
+    バーは辞書の小口インデックスです。なぞると、その位置の見出し語が並びます。</div>`;
+}
+
+function select(i) {
+  S.selected = i;
+  const e = S.results[i];
+  if (!e) return;
+  renderList();
+  renderEntry(e, i);
+  $('detail').classList.add('open');
+  const d = activeDicts()[S.active];
+  if (d && !e.mine && d.dict.index.length) moveCursor(d.dict.locate(e.key || toKeyword(e.word)) / d.dict.index.length);
+}
+
+function renderEntry(e, i) {
+  const el = $('detail');
+  el.innerHTML = `
+    <button class="back" id="back">← 一覧</button>
+    <div class="entry">
+      <h1>${esc(e.word)} ${e.mine ? '<span class="tag mine">マイ辞書</span>' : ''}</h1>
+      ${e.pron ? `<div class="pron">${esc(e.pron)}</div>` : ''}
+      ${SWELL}
+      <div class="trans">${esc(e.trans || '（訳語なし）')}</div>
+      ${e.example ? `<div class="ex"><em>用例</em>${esc(e.example)}</div>` : ''}
+      <div class="foot">
+        <span class="meta">${esc(e.src)}${e.level ? ' · レベル' + e.level : ''}</span>
+        ${e.mine
+          ? `<button class="btn" id="edit">編集</button><button class="btn danger" id="del">削除</button>`
+          : `<button class="btn" id="copy">マイ辞書に写して編集</button>`}
+      </div>
+    </div>`;
+  $('back').onclick = () => { el.classList.remove('open'); if (window.innerWidth > 860) detailPlaceholder(); };
+  if (e.mine) {
+    $('edit').onclick = () => openForm(e);
+    $('del').onclick = async () => {
+      if (!confirm(`「${e.word}」をマイ辞書から削除します。`)) return;
+      S.mine = S.mine.filter(x => x.id !== e.id);
+      await saveMine(); toast('削除しました'); el.classList.remove('open'); updateStatus(); run();
+    };
+  } else {
+    $('copy').onclick = () => openForm({ word: e.word, trans: e.trans, example: e.example, pron: e.pron, level: e.level });
+  }
+}
+
+/* ==================================================================
+   my dictionary
+   ================================================================== */
+async function loadMine() {
+  try {
+    const raw = await store.get(KEY_DICT) || await store.get(KEY_DICT_OLD);
+    if (raw) S.mine = JSON.parse(raw).entries || [];
+  } catch (_) { S.mine = []; }
+  S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+}
+async function saveMine() {
+  const ok = await store.set(KEY_DICT, JSON.stringify({ entries: S.mine, saved: Date.now() }));
+  if (!ok) toast('保存できませんでした。書き出してバックアップしてください');
+  return ok;
+}
+
+const FS_STEPS = [1, 1.15, 1.3, 1.45, 1.6, 1.8];
+const DEFAULT_TPL = '「{word}」の意味と定訳を教えてください。専門分野によって訳が分かれる場合は分野ごとに。英日の対訳と、短い用例をひとつ添えてください。';
+async function savePrefs() {
+  await store.set(KEY_PREF, JSON.stringify({ mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl }));
+}
+function applyFs() {
+  document.documentElement.style.setProperty('--fs', FS_STEPS[S.fs]);
+  savePrefs();
+}
+$('fsDown').onclick = () => { if (S.fs > 0) { S.fs--; applyFs(); } };
+$('fsUp').onclick = () => { if (S.fs < FS_STEPS.length - 1) { S.fs++; applyFs(); } };
+
+$('addBtn').onclick = () => openForm({ word: q.value.trim() });
+const EXT_SERVICES = {
+  chatgpt: { name: 'ChatGPT', prompt: true,
+             url: p => 'https://chatgpt.com/?q=' + encodeURIComponent(p) },
+  google:  { name: 'Google', prompt: false,
+             url: w => 'https://www.google.com/search?q=' + encodeURIComponent(w + ' とは 意味') },
+  weblio:  { name: 'Weblio', prompt: false,
+             url: w => 'https://www.weblio.jp/content/' + encodeURIComponent(w) },
+  deepl:   { name: 'DeepL', prompt: false,
+             url: w => 'https://www.deepl.com/translator#ja/en/' + encodeURIComponent(w) },
+};
+
+function askPrompt(word) {
+  return (S.tpl || '').includes('{word}')
+    ? S.tpl.replace(/\{word\}/g, word)
+    : (S.tpl ? S.tpl + '\n\n' + word : word);
+}
+
+function askExternal(word) {
+  const svc = EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt;
+  const url = svc.url(svc.prompt ? askPrompt(word) : word);
+  const a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function openAskSettings() {
+  sheet(`
+    <h2>調べる先</h2>
+    <div class="note">辞書に見つからなかったとき、この宛先に飛ばします。ChatGPTだけは質問文をそのまま渡せます。ほかは語をそのまま検索します。</div>
+    <div class="gchips">${Object.entries(EXT_SERVICES).map(([k, v]) =>
+      `<button class="gchip${k === S.ext ? ' on' : ''}" data-s="${k}">${v.name}</button>`).join('')}</div>
+    <label for="a-tpl">ChatGPTに送る質問文</label>
+    <textarea id="a-tpl" style="min-height:110px">${esc(S.tpl)}</textarea>
+    <div class="note"><code>{word}</code> のところに、探していた語が入ります。</div>
+    <div class="acts">
+      <button class="btn" id="a-reset">初期値に戻す</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="a-save">保存</button>
+    </div>`);
+  $('sheet').querySelectorAll('[data-s]').forEach(b => b.onclick = () => {
+    S.ext = b.dataset.s;
+    $('sheet').querySelectorAll('.gchip').forEach(x => x.classList.toggle('on', x.dataset.s === S.ext));
+  });
+  $('a-reset').onclick = () => { $('a-tpl').value = DEFAULT_TPL; };
+  $('a-save').onclick = async () => {
+    S.tpl = $('a-tpl').value.trim();
+    await savePrefs();
+    closeSheet(); toast('保存しました'); run();
+  };
+}
+
+$('askSetBtn').onclick = () => openAskSettings();
+$('mineBtn').onclick = () => openMine();
+$('groupBtn').onclick = () => openGroups();
+
+/* ==================================================================
+   dictionary groups
+   ================================================================== */
+function openGroups() {
+  const g = curGroup();
+  const ds = activeDicts();
+  const others = S.dicts.filter(d => !ds.includes(d));
+  const missing = missingDicts();
+
+  const chips = S.groups.map(x =>
+    `<button class="gchip${x.id === S.activeGroup ? ' on' : ''}" data-g="${x.id}">${esc(x.name)}</button>`
+  ).join('') + '<button class="gchip" data-g="__new">＋ 新しいグループ</button>';
+
+  const row = (d, on, i, n) => `<div class="drow${on ? '' : ' off'}">
+      <button class="tick${on ? ' on' : ''}" data-tick="${esc(d.name)}"
+        aria-label="${on ? '検索から外す' : '検索に加える'}">${on ? '✓' : ''}</button>
+      <span class="nm">${esc(d.name)}</span>
+      <span class="n">${d.dict.nword.toLocaleString()}</span>
+      <button class="mv" data-up="${i}" ${!on || i === 0 ? 'disabled style="opacity:.25"' : ''}>↑</button>
+      <button class="mv" data-down="${i}" ${!on || i >= n - 1 ? 'disabled style="opacity:.25"' : ''}>↓</button>
+    </div>`;
+
+  sheet(`
+    <h2>辞書グループ</h2>
+    <div class="note">グループごとに、検索する辞書と並び順を決められます。辞書ファイルは起動のたびに選び直しますが、どのファイルを使うグループなのかは覚えています。</div>
+    <div class="gchips">${chips}</div>
+    ${g.id === 'all'
+      ? '<div class="note">「すべて」は開いている辞書を全部検索します。特定の辞書だけにしたいときは、新しいグループを作ってください。</div>'
+      : `<div class="acts" style="margin-top:8px">
+           <button class="btn" id="g-ren">名前を変える</button>
+           <span class="spacer"></span>
+           <button class="btn danger" id="g-del">このグループを削除</button>
+         </div>`}
+
+    <label>開いている辞書</label>
+    ${S.dicts.length
+      ? ds.map((d, i) => row(d, true, i, ds.length)).join('') +
+        others.map(d => row(d, false, -1, 0)).join('')
+      : '<div class="note">まだ辞書を開いていません。</div>'}
+
+    ${missing.length ? `<label>このグループが使う辞書（未読込）</label>` +
+      missing.map(n => `<div class="drow missing">
+        <span class="nm">${esc(n)}</span>
+        <button class="mv" data-drop="${esc(n)}" aria-label="グループから外す">×</button>
+      </div>`).join('') +
+      '<div class="note">「辞書を開く」でこの名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
+
+    <div class="acts">
+      <button class="btn primary" id="g-open">辞書を開く</button>
+      <span class="spacer"></span>
+      <button class="btn" id="g-close">閉じる</button>
+    </div>`);
+
+  const refresh = async () => { await saveGroups(); renderChips(); renderThumb(); updateStatus(); run(); openGroups(); };
+
+  $('sheet').querySelectorAll('.gchip').forEach(b => b.onclick = async () => {
+    if (b.dataset.g === '__new') {
+      const name = prompt('グループの名前', '新しいグループ');
+      if (!name) return;
+      const id = Date.now().toString(36);
+      S.groups.push({ id, name: name.trim(), files: S.dicts.map(d => d.name) });
+      S.activeGroup = id;
+    } else {
+      S.activeGroup = b.dataset.g;
+    }
+    S.active = 0;
+    await refresh();
+  });
+
+  if ($('g-ren')) $('g-ren').onclick = async () => {
+    const name = prompt('グループの名前', g.name);
+    if (!name) return;
+    g.name = name.trim();
+    await refresh();
+  };
+  if ($('g-del')) $('g-del').onclick = async () => {
+    if (!confirm(`グループ「${g.name}」を削除します。辞書ファイル自体は消えません。`)) return;
+    S.groups = S.groups.filter(x => x.id !== g.id);
+    S.activeGroup = 'all';
+    await refresh();
+  };
+
+  $('sheet').querySelectorAll('[data-tick]').forEach(b => b.onclick = async () => {
+    const gg = curGroup();
+    if (!gg.files) { toast('「すべて」では全部が対象です'); return; }
+    const name = b.dataset.tick;
+    if (gg.files.includes(name)) gg.files = gg.files.filter(n => n !== name);
+    else gg.files.push(name);
+    S.active = 0;
+    await refresh();
+  });
+
+  const move = async (i, delta) => {
+    const gg = curGroup();
+    const list = gg.files ? gg.files : S.dicts;
+    const j = i + delta;
+    if (j < 0 || j >= list.length) return;
+    if (gg.files) {
+      const names = ds.map(d => d.name);
+      const a = names[i], b2 = names[j];
+      const ia = gg.files.indexOf(a), ib = gg.files.indexOf(b2);
+      gg.files[ia] = b2; gg.files[ib] = a;
+    } else {
+      const t = S.dicts[i]; S.dicts[i] = S.dicts[j]; S.dicts[j] = t;
+    }
+    S.active = 0;
+    await refresh();
+  };
+  $('sheet').querySelectorAll('[data-up]').forEach(b => b.onclick = () => move(+b.dataset.up, -1));
+  $('sheet').querySelectorAll('[data-down]').forEach(b => b.onclick = () => move(+b.dataset.down, 1));
+  $('sheet').querySelectorAll('[data-drop]').forEach(b => b.onclick = async () => {
+    const gg = curGroup();
+    gg.files = gg.files.filter(n => n !== b.dataset.drop);
+    await refresh();
+  });
+
+  $('g-open').onclick = () => { closeSheet(); $('file').click(); };
+  $('g-close').onclick = closeSheet;
+}
+
+function sheet(html) {
+  $('sheet').innerHTML = html;
+  $('veil').classList.add('on');
+}
+function closeSheet() { $('veil').classList.remove('on'); }
+$('veil').addEventListener('click', e => { if (e.target === $('veil')) closeSheet(); });
+
+function openForm(e) {
+  const editing = !!e.id;
+  sheet(`
+    <h2>${editing ? '用語を編集' : '用語を追加'}</h2>
+    <label for="f-w">見出し語</label>
+    <input id="f-w" value="${esc(e.word || '')}" autocapitalize="none" autocorrect="off">
+    <label for="f-t">訳語</label>
+    <textarea id="f-t">${esc(e.trans || '')}</textarea>
+    <label for="f-e">用例</label>
+    <textarea id="f-e" style="min-height:56px">${esc(e.example || '')}</textarea>
+    <label for="f-p">発音・読み</label>
+    <input id="f-p" value="${esc(e.pron || '')}">
+    <label for="f-l">レベル</label>
+    <select id="f-l">${[0,1,2,3,4,5,6,7,8,9,10].map(n =>
+      `<option value="${n}"${(e.level||0)===n?' selected':''}>${n===0?'なし':n}</option>`).join('')}</select>
+    <div class="acts">
+      <button class="btn" id="f-cancel">やめる</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="f-save">保存</button>
+    </div>`);
+  $('f-cancel').onclick = closeSheet;
+  $('f-w').focus();
+  $('f-save').onclick = async () => {
+    const word = $('f-w').value.trim();
+    if (!word) { toast('見出し語を入れてください'); $('f-w').focus(); return; }
+    const rec = {
+      id: e.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      word,
+      trans: $('f-t').value.trim(),
+      example: $('f-e').value.trim(),
+      pron: $('f-p').value.trim(),
+      level: +$('f-l').value,
+      key: toKeyword(word),
+      updated: Date.now(),
+    };
+    if (e.id) S.mine = S.mine.map(x => x.id === e.id ? rec : x);
+    else S.mine.push(rec);
+    S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+    await saveMine();
+    closeSheet(); updateStatus(); toast(e.id ? '更新しました' : `「${word}」を追加しました`);
+    q.value = word; $('clear').hidden = false; run();
+  };
+}
+
+function openMine() {
+  sheet(`
+    <h2>マイ辞書</h2>
+    <div class="note">${S.mine.length}語。保存先は${
+      store.kind === 'claude' ? 'このアプリの保存領域' :
+      store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
+      大事な語は定期的に書き出してください。</div>
+    <div class="acts">
+      <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
+      <button class="btn" id="x-csv">CSVで書き出す</button>
+      <button class="btn" id="x-json">バックアップを書き出す</button>
+      <button class="btn" id="x-imp">読み込む</button>
+    </div>
+    <textarea class="out" id="x-out" readonly hidden></textarea>
+    <div class="acts">
+      <button class="btn" id="x-copy" hidden>コピー</button>
+      <span class="spacer"></span>
+      <button class="btn" id="x-close">閉じる</button>
+    </div>
+    <div class="note" id="x-note"></div>`);
+  $('x-close').onclick = closeSheet;
+
+  const show = (text, note) => {
+    const out = $('x-out'); out.hidden = false; out.value = text;
+    $('x-copy').hidden = false; $('x-note').innerHTML = note;
+    $('x-copy').onclick = async () => {
+      try { await navigator.clipboard.writeText(text); toast('コピーしました'); }
+      catch (_) { out.select(); toast('長押しして「コピー」を選んでください'); }
+    };
+  };
+
+  $('x-dic').onclick = () => {
+    if (!S.mine.length) { toast('マイ辞書が空です'); return; }
+    try {
+      const bytes = buildDic(S.mine);
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'MyLexicon.dic';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      $('x-note').innerHTML = `${S.mine.length}語の辞書ファイルを書き出しました。` +
+        'このアプリの「辞書を開く」でそのまま開けますし、Windows版PDICの辞書グループにも追加できます。' +
+        '「ファイル」アプリに保存して、次からはこれを普通の辞書として開くのが確実です。';
+    } catch (err) {
+      $('x-note').textContent = '書き出しに失敗しました: ' + (err.message || err);
+    }
+  };
+
+  $('x-csv').onclick = () => {
+    const csv = toCsv(S.mine);
+    download(csv, 'mydict.csv', 'utf16');
+    show(csv, 'PDICの<code>辞書設定&lt;詳細&gt; → 辞書変換</code>でCSV形式として取り込めます。1行目の見出しは <code>word,trans,exp,level,pron</code> です。保存できないときは、上の内容をコピーしてテキストとして貼り付けてください。');
+  };
+  $('x-json').onclick = () => {
+    const j = JSON.stringify({ entries: S.mine }, null, 1);
+    download(j, 'mydict-backup.json', 'utf8');
+    show(j, 'この内容を保存しておけば、別の端末の「読み込む」で復元できます。');
+  };
+  $('x-imp').onclick = () => {
+    sheet(`<h2>マイ辞書を読み込む</h2>
+      <div class="note">バックアップのJSON、または <code>見出し語,訳語</code> のCSVを貼り付けてください。今ある語に追加されます。</div>
+      <textarea class="out" id="i-in" style="height:200px"></textarea>
+      <div class="acts"><button class="btn" id="i-cancel">やめる</button><span class="spacer"></span>
+      <button class="btn primary" id="i-go">追加する</button></div>`);
+    $('i-cancel').onclick = openMine;
+    $('i-go').onclick = async () => {
+      const n = importText($('i-in').value);
+      if (!n) { toast('読み取れませんでした'); return; }
+      await saveMine(); closeSheet(); updateStatus(); run(); toast(`${n}語を追加しました`);
+    };
+  };
+}
+
+function csvCell(s) { return '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"'; }
+function toCsv(entries) {
+  const rows = ['word,trans,exp,level,pron'];
+  for (const e of entries) {
+    rows.push([e.word, e.trans, e.example, e.level || 0, e.pron].map(csvCell).join(','));
+  }
+  return rows.join('\r\n') + '\r\n';
+}
+
+function importText(text) {
+  text = text.trim();
+  if (!text) return 0;
+  let added = 0;
+  if (text.startsWith('{')) {
+    try {
+      const j = JSON.parse(text);
+      for (const e of (j.entries || [])) {
+        if (!e.word) continue;
+        S.mine.push({ ...e, id: e.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) });
+        added++;
+      }
+    } catch (_) { return 0; }
+  } else {
+    for (const line of text.split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      const cells = parseCsvLine(line);
+      if (!cells.length || !cells[0] || cells[0] === 'word') continue;
+      S.mine.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        word: cells[0], trans: cells[1] || '', example: cells[2] || '',
+        level: +cells[3] || 0, pron: cells[4] || '', updated: Date.now(),
+      });
+      added++;
+    }
+  }
+  S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+  return added;
+}
+
+function parseCsvLine(line) {
+  const out = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQ) {
+      if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+      else cur += c;
+    } else if (c === '"') inQ = true;
+    else if (c === ',' || c === '\t') { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+function download(text, filename, enc) {
+  let blob;
+  if (enc === 'utf16') {
+    const buf = new ArrayBuffer(2 + text.length * 2);
+    const dv = new DataView(buf);
+    dv.setUint8(0, 0xff); dv.setUint8(1, 0xfe);
+    for (let i = 0; i < text.length; i++) dv.setUint16(2 + i * 2, text.charCodeAt(i), true);
+    blob = new Blob([buf], { type: 'text/csv' });
+  } else {
+    blob = new Blob(['\uFEFF' + text], { type: 'application/json' });
+  }
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  } catch (_) { /* the textarea fallback below covers this */ }
+}
+
+/* ==================================================================
+   start
+   ================================================================== */
+(async () => {
+  try {
+    const p = JSON.parse(await store.get(KEY_PREF) || '{}');
+    if (p.mode) { S.mode = p.mode; for (const n of ['prefix','exact','full'])
+      $('m-' + n).setAttribute('aria-pressed', String(n === p.mode)); }
+    if (typeof p.fs === 'number') S.fs = Math.max(0, Math.min(FS_STEPS.length - 1, p.fs));
+    if (p.ext && EXT_SERVICES[p.ext]) S.ext = p.ext;
+    if (typeof p.tpl === 'string' && p.tpl) S.tpl = p.tpl;
+  } catch (_) {}
+  applyFs();
+  await loadGroups();
+  await loadMine();
+  updateStatus();
+  detailPlaceholder();
+  run();
+})();
+</script>
+</body>
+</html>
