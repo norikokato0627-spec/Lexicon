@@ -79,7 +79,6 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
   font-size:calc(11px * var(--fs));letter-spacing:.02em;padding:3px 8px;border:1px solid var(--rule);
   border-radius:2px;color:var(--grey);white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis
 }
-.chip.on{border-color:var(--navy);color:var(--navy)}
 .chip b{font-weight:600}
 .chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
 .ghost{
@@ -109,25 +108,6 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
 .modes button:last-child{border-right:1px solid var(--rule);border-radius:0 2px 2px 0}
 .modes button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
 @media (prefers-color-scheme: dark){ .modes button[aria-pressed="true"]{color:#0E1016} }
-
-/* ---------- thumb index: the signature element ---------- */
-.thumb{position:relative;height:34px;margin:10px var(--pad) 0;touch-action:none;cursor:ew-resize}
-.thumb::before{
-  content:"";position:absolute;left:0;right:0;top:11px;height:1px;background:var(--rule)
-}
-.thumb .notch{position:absolute;top:0;transform:translateX(-50%);text-align:center;pointer-events:none}
-.thumb .notch i{display:block;width:1px;height:8px;background:var(--rule);margin:3px auto 0}
-.thumb .notch b{
-  display:block;font-family:var(--mono);font-size:calc(9px * var(--fs));font-weight:400;color:var(--grey);
-  margin-top:3px;letter-spacing:0
-}
-.thumb .cursor{
-  position:absolute;top:0;width:2px;height:14px;background:var(--navy);transform:translateX(-1px);
-  transition:left .18s ease
-}
-.thumb .cursor.dragging{transition:none}
-.thumb[data-empty="1"]{opacity:.35;pointer-events:none}
-
 
 /* ---------- engraved plate ---------- */
 .plate-wrap{max-width:380px;margin:0 auto 26px}
@@ -251,7 +231,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
 }
 @keyframes rise{from{transform:translateY(20px);opacity:.6}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){
-  .sheet{animation:none} .detail{transition:none} .thumb .cursor{transition:none}
+  .sheet{animation:none} .detail{transition:none}
 }
 .sheet h2{font-family:var(--serif);font-size:calc(20px * var(--fs));font-weight:400;margin:0 0 14px}
 .sheet label{display:block;font-size:calc(11px * var(--fs));letter-spacing:.04em;color:var(--grey);margin:12px 0 4px}
@@ -326,8 +306,6 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button id="m-exact" aria-pressed="false">完全一致</button>
     <button id="m-full" aria-pressed="false">訳語も検索</button>
   </div>
-  <div class="thumb" id="thumb" data-empty="1" role="slider" aria-label="辞書内の位置" tabindex="0"
-       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
 </header>
 
 <main>
@@ -1085,7 +1063,6 @@ const KEY_GROUPS = 'lexicon:groups:v1';
    ================================================================== */
 const S = {
   dicts: [],            // [{ id, name, dict }]
-  active: 0,            // which dictionary the thumb index browses
   mine: [],             // user entries
   mode: 'prefix',
   fs: 1,
@@ -1255,8 +1232,7 @@ async function restoreDicts() {
       await savedDicts.del(rec.name);
     }
   }
-  S.active = 0;
-  renderChips(); renderThumb(); updateStatus(); run();
+  renderChips(); updateStatus(); run();
 }
 
 $('file').onchange = async (ev) => {
@@ -1268,7 +1244,6 @@ $('file').onchange = async (ev) => {
   for (const f of files) {
     try {
       const dict = await addDictionary(f);
-      S.active = Math.max(0, activeDicts().findIndex(d => d.name === dict.name));
       toast(`${dict.name} を保存しました`);
     } catch (e) {
       toast(e.message || '辞書を開けませんでした');
@@ -1277,18 +1252,14 @@ $('file').onchange = async (ev) => {
     }
   }
   await saveGroups();
-  renderChips(); renderThumb(); updateStatus(); run();
+  renderChips(); updateStatus(); run();
 };
 
 function renderChips() {
   const el = $('dicts');
-  el.innerHTML = activeDicts().map((d, i) =>
-    `<button class="chip${i === S.active ? ' on' : ''}" data-i="${i}">
-       <b>${esc(d.name)}</b><span class="n">${d.dict.nword.toLocaleString()}</span>
-     </button>`).join('');
-  el.querySelectorAll('.chip').forEach(b => b.onclick = () => {
-    S.active = +b.dataset.i; renderChips(); renderThumb();
-  });
+  el.innerHTML = activeDicts().map(d =>
+    `<span class="chip"><b>${esc(d.name)}</b><span class="n">${d.dict.nword.toLocaleString()}</span></span>`
+  ).join('');
 }
 
 function updateStatus() {
@@ -1301,81 +1272,6 @@ function updateStatus() {
   const gb = $('groupBtn');
   if (gb) gb.textContent = 'グループ：' + curGroup().name;
 }
-
-/* ==================================================================
-   thumb index — drag along the edge to riffle through the dictionary
-   ================================================================== */
-function renderThumb() {
-  const el = $('thumb');
-  const d = activeDicts()[S.active];
-  if (!d || !d.dict.index.length) { el.dataset.empty = '1'; el.innerHTML = ''; return; }
-  el.dataset.empty = '0';
-  const idx = d.dict.index;
-  let marks = [];
-  let last = null;
-  for (let i = 0; i < idx.length; i++) {
-    const ch = ([...(idx[i].key || ' ')][0]) || ' ';
-    if (ch !== last) { marks.push({ ch, at: i }); last = ch; }
-  }
-  if (marks.length < 10) {
-    // Too few distinct initials to notch by letter; sample evenly instead.
-    const n = Math.min(14, idx.length);
-    marks = Array.from({ length: n }, (_, k) => {
-      const at = Math.floor(k * idx.length / n);
-      return { ch: [...(idx[at].key || '')].slice(0, 2).join(''), at };
-    });
-  }
-  const step = Math.ceil(marks.length / 28) || 1;
-  const shown = marks.filter((_, i) => i % step === 0);
-  el.innerHTML = shown.map(m =>
-    `<span class="notch" style="left:${(m.at / idx.length * 100).toFixed(2)}%"><i></i><b>${esc(m.ch)}</b></span>`
-  ).join('') + '<span class="cursor" id="cursor" style="left:0%"></span>';
-}
-
-function moveCursor(ratio) {
-  const c = $('cursor');
-  if (c) c.style.left = (Math.max(0, Math.min(1, ratio)) * 100).toFixed(2) + '%';
-  $('thumb').setAttribute('aria-valuenow', Math.round(ratio * 100));
-}
-
-(function bindThumb() {
-  const el = $('thumb');
-  let dragging = false, busy = false, pending = null;
-  const jump = async (clientX) => {
-    const d = activeDicts()[S.active];
-    if (!d) return;
-    if (busy) { pending = clientX; return; }
-    busy = true;
-    const r = el.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
-    moveCursor(ratio);
-    const pos = Math.min(d.dict.index.length - 1, Math.floor(ratio * d.dict.index.length));
-    const entries = await d.dict.listFrom(pos, 60);
-    S.results = entries.map(e => ({ ...e, src: d.name }));
-    S.selected = null;
-    renderList(`${d.name} · ${esc(d.dict.index[pos].key.slice(0, 12) || '—')} 付近`);
-    busy = false;
-    if (pending !== null) { const x = pending; pending = null; jump(x); }
-  };
-  el.addEventListener('pointerdown', e => {
-    dragging = true; el.setPointerCapture(e.pointerId);
-    $('cursor') && $('cursor').classList.add('dragging'); jump(e.clientX);
-  });
-  el.addEventListener('pointermove', e => { if (dragging) jump(e.clientX); });
-  el.addEventListener('pointerup', e => {
-    dragging = false; $('cursor') && $('cursor').classList.remove('dragging');
-  });
-  el.addEventListener('keydown', e => {
-    const d = activeDicts()[S.active]; if (!d) return;
-    const cur = +el.getAttribute('aria-valuenow') || 0;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-      e.preventDefault();
-      const r = el.getBoundingClientRect();
-      const next = Math.max(0, Math.min(100, cur + (e.key === 'ArrowRight' ? 2 : -2)));
-      jump(r.left + r.width * next / 100);
-    }
-  });
-})();
 
 /* ==================================================================
    search
@@ -1427,8 +1323,6 @@ async function run() {
   S.results = out;
   S.selected = null;
   renderList(`「${esc(query)}」${S.mode === 'exact' ? 'に一致' : 'で始まる語'}`);
-  const d = activeDicts()[S.active];
-  if (d && d.dict.index.length) moveCursor(d.dict.locate(toKeyword(query)) / d.dict.index.length);
 }
 
 async function runFullText(query, seed, seq) {
@@ -1553,8 +1447,8 @@ function emptyState(headline) {
       </ol>
       辞書がなくても、マイ辞書だけで用語集として使えます。</div>`;
   }
-  return `<div class="empty"><b>検索するか、上のバーを指でなぞってください</b>
-    バーは辞書の小口インデックスです。なぞると、その位置の見出し語が並びます。</div>`;
+  return `<div class="empty"><b>見出し語を検索してください</b>
+    「訳語も検索」に切り替えると、本文からも探せます。</div>`;
 }
 
 function select(i) {
@@ -1564,8 +1458,6 @@ function select(i) {
   renderList();
   renderEntry(e, i);
   $('detail').classList.add('open');
-  const d = activeDicts()[S.active];
-  if (d && !e.mine && d.dict.index.length) moveCursor(d.dict.locate(e.key || toKeyword(e.word)) / d.dict.index.length);
 }
 
 function renderEntry(e, i) {
@@ -1745,7 +1637,7 @@ async function openGroups() {
       <button class="btn" id="g-close">閉じる</button>
     </div>`);
 
-  const refresh = async () => { await saveGroups(); renderChips(); renderThumb(); updateStatus(); run(); openGroups(); };
+  const refresh = async () => { await saveGroups(); renderChips(); updateStatus(); run(); openGroups(); };
 
   $('sheet').querySelectorAll('.gchip').forEach(b => b.onclick = async () => {
     if (b.dataset.g === '__new') {
@@ -1757,7 +1649,6 @@ async function openGroups() {
     } else {
       S.activeGroup = b.dataset.g;
     }
-    S.active = 0;
     await refresh();
   });
 
@@ -1781,7 +1672,6 @@ async function openGroups() {
     const name = b.dataset.tick;
     if (gg.files.includes(name)) gg.files = gg.files.filter(n => n !== name);
     else gg.files.push(name);
-    S.active = 0;
     await refresh();
   });
 
@@ -1798,7 +1688,6 @@ async function openGroups() {
     } else {
       const t = S.dicts[i]; S.dicts[i] = S.dicts[j]; S.dicts[j] = t;
     }
-    S.active = 0;
     await refresh();
   };
   $('sheet').querySelectorAll('[data-up]').forEach(b => b.onclick = () => move(+b.dataset.up, -1));
@@ -1810,7 +1699,6 @@ async function openGroups() {
     await savedDicts.del(name);
     const base = name.replace(/\.dic$/i, '');
     S.dicts = S.dicts.filter(d => d.name !== base);
-    S.active = 0;
     await refresh();
   });
 
