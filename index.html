@@ -1936,10 +1936,29 @@ function openMine() {
     <div class="acts">
       <button class="btn" id="x-copy" hidden>コピー</button>
       <span class="spacer"></span>
+      <button class="btn danger" id="x-clear">すべて消す</button>
       <button class="btn" id="x-close">閉じる</button>
     </div>
     <div class="note" id="x-note"></div>`);
   $('x-close').onclick = closeSheet;
+
+  $('x-clear').onclick = async () => {
+    if (!S.mine.length) { toast('マイ辞書は空です'); return; }
+    const n = S.mine.length;
+    const ok = await askConfirm(
+      `マイ辞書の${n}語をすべて消します。元に戻せません。` +
+      '先に「PDIC辞書(.dic)で書き出す」か「バックアップを書き出す」で控えを取っておくことをおすすめします。',
+      { okLabel: `${n}語を消す`, restore: openMine });
+    if (!ok) return;
+    const again = await askConfirm('本当に消してよろしいですか。',
+      { okLabel: 'はい、消します', restore: openMine });
+    if (!again) return;
+    S.mine = [];
+    await saveMine();
+    updateStatus(); run();
+    closeSheet();
+    toast(`${n}語を削除しました`);
+  };
 
   const show = (text, note) => {
     const out = $('x-out'); out.hidden = false; out.value = text;
