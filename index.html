@@ -890,6 +890,51 @@ const store = (() => {
   };
 })();
 
+/* ------------------------------------------------------------------
+   Dictionaries kept on the device, so they need picking only once.
+   Falls back silently when IndexedDB isn't available.
+   ------------------------------------------------------------------ */
+const IDB_NAME = 'lexicon', IDB_STORE = 'dicts';
+
+function idbOpen() {
+  return new Promise((res, rej) => {
+    if (typeof indexedDB === 'undefined') return rej(new Error('no indexeddb'));
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = () => {
+      if (!r.result.objectStoreNames.contains(IDB_STORE))
+        r.result.createObjectStore(IDB_STORE, { keyPath: 'name' });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+
+function idbTx(mode, fn) {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, mode);
+    const req = fn(tx.objectStore(IDB_STORE));
+    tx.oncomplete = () => res(req && req.result);
+    tx.onerror = tx.onabort = () => rej(tx.error);
+  }));
+}
+
+const savedDicts = {
+  async list() { try { return (await idbTx('readonly', st => st.getAll())) || []; } catch (_) { return []; } },
+  async put(name, file) {
+    // Safari keeps Blobs on disk and reads them lazily, so try that first.
+    try {
+      await idbTx('readwrite', st => st.put({ name, file, size: file.size, added: Date.now() }));
+      return true;
+    } catch (_) {}
+    try {
+      const data = await file.arrayBuffer();
+      await idbTx('readwrite', st => st.put({ name, data, size: file.size, added: Date.now() }));
+      return true;
+    } catch (_) { return false; }
+  },
+  async del(name) { try { await idbTx('readwrite', st => st.delete(name)); return true; } catch (_) { return false; } },
+};
+
 const KEY_DICT = 'lexicon:userdict:v1';
 const KEY_PREF = 'lexicon:prefs:v1';
 const KEY_DICT_OLD = 'jiten:userdict:v1';
@@ -1032,27 +1077,59 @@ function makeReader(file) {
 }
 
 $('openBtn').onclick = () => $('file').click();
+
+/** Open one dictionary file and register it. Returns the dictionary or throws. */
+async function addDictionary(f, opts = {}) {
+  const fileName = opts.name || f.name;
+  $('status').textContent = `${fileName} を読み込み中…`;
+  const dict = await new PdicDictionary(makeReader(f), fileName.replace(/\.dic$/i, '')).open();
+  dict.cache = new Map();
+  const rawRead = dict.readBlock.bind(dict);
+  dict.readBlock = async (no) => {
+    if (dict.cache.has(no)) return dict.cache.get(no);
+    const r = await rawRead(no);
+    if (dict.cache.size > 400) dict.cache.clear();
+    dict.cache.set(no, r);
+    return r;
+  };
+  if (S.dicts.some(d => d.name === dict.name)) {
+    S.dicts = S.dicts.filter(d => d.name !== dict.name);
+  }
+  S.dicts.push({ id: Math.random().toString(36).slice(2), name: dict.name, dict, file: fileName });
+  const g = curGroup();
+  if (g.files && !g.files.includes(dict.name)) g.files.push(dict.name);
+  if (!opts.fromStore) await savedDicts.put(fileName, f);
+  return dict;
+}
+
+/** Reopen everything kept on the device. */
+async function restoreDicts() {
+  const saved = await savedDicts.list();
+  if (!saved.length) return;
+  for (const rec of saved) {
+    try {
+      let src = rec.file;
+      if (!src || typeof src.slice !== 'function') src = new Blob([rec.data]);
+      await addDictionary(src, { fromStore: true, name: rec.name });
+    } catch (e) {
+      await savedDicts.del(rec.name);
+    }
+  }
+  S.active = 0;
+  renderChips(); renderThumb(); updateStatus(); run();
+}
+
 $('file').onchange = async (ev) => {
   const files = [...ev.target.files];
   ev.target.value = '';
+  if (files.length && navigator.storage && navigator.storage.persist) {
+    try { await navigator.storage.persist(); } catch (_) {}
+  }
   for (const f of files) {
     try {
-      $('status').textContent = `${f.name} を読み込み中…`;
-      const dict = await new PdicDictionary(makeReader(f), f.name.replace(/\.dic$/i, '')).open();
-      dict.cache = new Map();
-      const rawRead = dict.readBlock.bind(dict);
-      dict.readBlock = async (no) => {
-        if (dict.cache.has(no)) return dict.cache.get(no);
-        const r = await rawRead(no);
-        if (dict.cache.size > 400) dict.cache.clear();
-        dict.cache.set(no, r);
-        return r;
-      };
-      S.dicts.push({ id: Math.random().toString(36).slice(2), name: dict.name, dict });
-      const g = curGroup();
-      if (g.files && !g.files.includes(dict.name)) g.files.push(dict.name);
+      const dict = await addDictionary(f);
       S.active = Math.max(0, activeDicts().findIndex(d => d.name === dict.name));
-      toast(`${dict.name} を開きました`);
+      toast(`${dict.name} を保存しました`);
     } catch (e) {
       toast(e.message || '辞書を開けませんでした');
       $('status').textContent = e.message || '辞書を開けませんでした';
@@ -1290,8 +1367,7 @@ function detailPlaceholder() {
     : '追加した用語はこの端末に残ります。';
   $('detail').innerHTML = plate('Fig. I — 小口の爪かけ') + `<div class="empty" style="padding:0;max-width:34em;margin:0 auto;text-align:center">
     <b>語を選ぶと、ここに表示されます</b>
-    辞書ファイルは開くたびに選び直します。iOSがアプリにファイルを覚えさせないためで、
-    読み込みは索引だけを見るので一瞬で終わります。${where}</div>`;
+    辞書は一度開けば端末に保存され、次からは自動で読み込まれます。${where}</div>`;
 }
 
 async function copyText(text) {
@@ -1332,8 +1408,8 @@ function emptyState(headline) {
       PDIC/Unicode形式の <code>.dic</code> ファイルをそのまま読みます。ファイルはこの端末から出ません。
       <ol>
         <li>iPadの「ファイル」アプリに .dic を入れる（iCloud Driveでも可）</li>
-        <li>右上の「辞書を開く」から選ぶ</li>
-        <li>複数選べば串刺し検索になります</li>
+        <li>右上の「辞書を開く」から選ぶ。複数選べば串刺し検索になります</li>
+        <li>一度開けば端末に保存され、次からは選び直し不要です</li>
       </ol>
       辞書がなくても、マイ辞書だけで用語集として使えます。</div>`;
   }
@@ -1373,7 +1449,7 @@ function renderEntry(e, i) {
   if (e.mine) {
     $('edit').onclick = () => openForm(e);
     $('del').onclick = async () => {
-      if (!confirm(`「${e.word}」をマイ辞書から削除します。`)) return;
+      if (!await askConfirm(`「${e.word}」をマイ辞書から削除します。`)) return;
       S.mine = S.mine.filter(x => x.id !== e.id);
       await saveMine(); toast('削除しました'); el.classList.remove('open'); updateStatus(); run();
     };
@@ -1469,7 +1545,8 @@ $('groupBtn').onclick = () => openGroups();
 /* ==================================================================
    dictionary groups
    ================================================================== */
-function openGroups() {
+async function openGroups() {
+  const saved = await savedDicts.list();
   const g = curGroup();
   const ds = activeDicts();
   const others = S.dicts.filter(d => !ds.includes(d));
@@ -1513,6 +1590,15 @@ function openGroups() {
       </div>`).join('') +
       '<div class="note">「辞書を開く」でこの名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
 
+    ${saved.length ? `<label>端末に保存した辞書</label>` +
+      saved.map(r => `<div class="drow">
+        <span class="nm">${esc(r.name)}</span>
+        <span class="n">${(r.size / 1048576).toFixed(1)}MB</span>
+        <button class="mv" data-forget="${esc(r.name)}" aria-label="端末から削除">×</button>
+      </div>`).join('') +
+      '<div class="note">保存してあるので、起動のたびに選び直す必要はありません。×を押すと端末から消えます（元のファイルは残ります）。</div>'
+      : '<div class="note">辞書を一度開くと端末に保存され、次回からは自動で読み込まれます。</div>'}
+
     <div class="acts">
       <button class="btn primary" id="g-open">辞書を開く</button>
       <span class="spacer"></span>
@@ -1523,10 +1609,10 @@ function openGroups() {
 
   $('sheet').querySelectorAll('.gchip').forEach(b => b.onclick = async () => {
     if (b.dataset.g === '__new') {
-      const name = prompt('グループの名前', '新しいグループ');
+      const name = await askName('新しいグループ', '', { placeholder: '例：法務', restore: openGroups });
       if (!name) return;
       const id = Date.now().toString(36);
-      S.groups.push({ id, name: name.trim(), files: S.dicts.map(d => d.name) });
+      S.groups.push({ id, name, files: S.dicts.map(d => d.name) });
       S.activeGroup = id;
     } else {
       S.activeGroup = b.dataset.g;
@@ -1536,13 +1622,14 @@ function openGroups() {
   });
 
   if ($('g-ren')) $('g-ren').onclick = async () => {
-    const name = prompt('グループの名前', g.name);
+    const name = await askName('グループの名前', g.name, { restore: openGroups });
     if (!name) return;
-    g.name = name.trim();
+    g.name = name;
     await refresh();
   };
   if ($('g-del')) $('g-del').onclick = async () => {
-    if (!confirm(`グループ「${g.name}」を削除します。辞書ファイル自体は消えません。`)) return;
+    if (!await askConfirm(`グループ「${g.name}」を削除します。辞書ファイル自体は消えません。`,
+        { restore: openGroups })) return;
     S.groups = S.groups.filter(x => x.id !== g.id);
     S.activeGroup = 'all';
     await refresh();
@@ -1576,6 +1663,17 @@ function openGroups() {
   };
   $('sheet').querySelectorAll('[data-up]').forEach(b => b.onclick = () => move(+b.dataset.up, -1));
   $('sheet').querySelectorAll('[data-down]').forEach(b => b.onclick = () => move(+b.dataset.down, 1));
+  $('sheet').querySelectorAll('[data-forget]').forEach(b => b.onclick = async () => {
+    const name = b.dataset.forget;
+    if (!await askConfirm(`「${name}」を端末から削除します。元のファイルは消えません。`,
+        { restore: openGroups })) return;
+    await savedDicts.del(name);
+    const base = name.replace(/\.dic$/i, '');
+    S.dicts = S.dicts.filter(d => d.name !== base);
+    S.active = 0;
+    await refresh();
+  });
+
   $('sheet').querySelectorAll('[data-drop]').forEach(b => b.onclick = async () => {
     const gg = curGroup();
     gg.files = gg.files.filter(n => n !== b.dataset.drop);
@@ -1584,6 +1682,49 @@ function openGroups() {
 
   $('g-open').onclick = () => { closeSheet(); $('file').click(); };
   $('g-close').onclick = closeSheet;
+}
+
+/** Small modal that asks for a line of text. Resolves to null when cancelled. */
+function askName(title, value = '', opts = {}) {
+  const { placeholder = '', restore = null } = opts;
+  return new Promise(resolve => {
+    sheet(`
+      <h2>${esc(title)}</h2>
+      <label for="ask-in">名前</label>
+      <input id="ask-in" value="${esc(value)}" placeholder="${esc(placeholder)}" autocomplete="off">
+      <div class="acts">
+        <button class="btn" id="ask-no">やめる</button>
+        <span class="spacer"></span>
+        <button class="btn primary" id="ask-yes">決定</button>
+      </div>`);
+    const done = v => { if (restore) restore(); else closeSheet(); resolve(v); };
+    const input = $('ask-in');
+    input.focus();
+    input.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('ask-yes').click(); } };
+    $('ask-no').onclick = () => done(null);
+    $('ask-yes').onclick = () => {
+      const v = input.value.trim();
+      done(v || null);
+    };
+  });
+}
+
+/** Yes/no modal. Resolves to true when confirmed. */
+function askConfirm(message, opts = {}) {
+  const { okLabel = '削除する', restore = null } = opts;
+  return new Promise(resolve => {
+    sheet(`
+      <h2>確認</h2>
+      <div class="note" style="margin-top:0">${esc(message)}</div>
+      <div class="acts">
+        <button class="btn" id="cf-no">やめる</button>
+        <span class="spacer"></span>
+        <button class="btn danger" id="cf-yes">${esc(okLabel)}</button>
+      </div>`);
+    const done = v => { if (restore) restore(); else closeSheet(); resolve(v); };
+    $('cf-no').onclick = () => done(false);
+    $('cf-yes').onclick = () => done(true);
+  });
 }
 
 function sheet(html) {
@@ -1802,6 +1943,7 @@ function download(text, filename, enc) {
   updateStatus();
   detailPlaceholder();
   run();
+  restoreDicts();
 })();
 </script>
 </body>
