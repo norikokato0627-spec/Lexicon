@@ -2017,6 +2017,9 @@ async function run() {
   S.results = out;
   S.selected = null;
   renderList(`「${esc(query)}」${S.mode === 'exact' ? 'に一致' : 'で始まる語'}`);
+  // nothing in the dictionaries: the next move is almost always to ask,
+  // so start the request now rather than when the button is pressed
+  if (!out.length && query.length >= 2) prefetchAnswer(query);
 }
 
 /** What to show when the search box is empty. */
@@ -2322,6 +2325,74 @@ function askExternal(word) {
   document.body.appendChild(a); a.click(); a.remove();
 }
 
+const aiCache = new Map();        // word -> finished answer
+const aiPending = new Map();      // word -> promise of an answer already in flight
+
+/** Fire the request without showing anything, so the answer is ready early. */
+function prefetchAnswer(word) {
+  if (!S.apiKey || !word || aiCache.has(word) || aiPending.has(word)) return;
+  const p = runCompletion(word).then(t => { aiCache.set(word, t); aiPending.delete(word); return t; })
+                               .catch(() => { aiPending.delete(word); return null; });
+  aiPending.set(word, p);
+}
+
+/** One request. onPiece receives text as it arrives. Returns the whole answer. */
+async function runCompletion(word, onPiece, onFirst) {
+  const body = {
+    model: S.model,
+    stream: true,
+    max_tokens: 200,
+    messages: [
+      { role: 'system', content: '会議通訳者の用語照会に答えます。簡潔に、訳語を中心に。前置き・注釈・挨拶は書かない。' },
+      { role: 'user', content: askPrompt(word) },
+    ],
+  };
+  let res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok && res.status === 400) {
+    // some models reject max_tokens; try once without it
+    delete body.max_tokens;
+    res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey },
+      body: JSON.stringify(body),
+    });
+  }
+  if (!res.ok) {
+    let msg = res.status + ' ' + res.statusText;
+    try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch (_) {}
+    const e = new Error(msg); e.api = true; throw e;
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', text = '', first = true;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === '[DONE]') continue;
+      try {
+        const j = JSON.parse(payload);
+        const piece = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
+        if (piece) {
+          if (first) { first = false; if (onFirst) onFirst(); }
+          text += piece;
+          if (onPiece) onPiece(text);
+        }
+      } catch (_) {}
+    }
+  }
+  return text;
+}
+
 /** Ask the model directly and stream the reply into the reading pane. */
 async function askInline(word) {
   const el = $('detail');
@@ -2341,57 +2412,35 @@ async function askInline(word) {
   $('back').onclick = () => { el.classList.remove('open'); if (window.innerWidth > 860) detailPlaceholder(); };
   $('ai-web').onclick = () => askExternal(word);
   const out = $('ai-out');
-  let text = '';
-  const started = Date.now();
+  const meta = $('ai-meta');
 
+  const finish = (text, note) => {
+    if (!text || !text.trim()) return;
+    out.textContent = text;
+    meta.textContent = `${S.model}${note ? ' · ' + note : ''}`;
+    const save = $('ai-save');
+    save.disabled = false; save.style.opacity = '';
+    save.onclick = () => openForm({ word, trans: text.trim(), job: S.job });
+  };
+
+  if (aiCache.has(word)) { finish(aiCache.get(word), '既出'); return; }
+
+  const started = Date.now();
+  let ttft = 0;
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey },
-      body: JSON.stringify({
-        model: S.model,
-        stream: true,
-        messages: [
-          { role: 'system', content: '会議通訳者の用語照会に答えます。簡潔に、訳語を中心に。前置き・注釈・挨拶は書かない。' },
-          { role: 'user', content: askPrompt(word) },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      let msg = res.status + ' ' + res.statusText;
-      try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch (_) {}
-      out.innerHTML = `<span class="waiting">応答がありません。<br>${esc(msg)}</span>`;
-      return;
+    if (aiPending.has(word)) {
+      out.innerHTML = '<span class="waiting">照会中…</span>';
+      const text = await aiPending.get(word);
+      if (text) { finish(text, '先読み'); return; }
     }
-    const reader = res.body.getReader();
-    const dec = new TextDecoder();
-    let buf = '';
-    out.textContent = '';
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const payload = line.slice(5).trim();
-        if (!payload || payload === '[DONE]') continue;
-        try {
-          const j = JSON.parse(payload);
-          const piece = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
-          if (piece) { text += piece; out.textContent = text; }
-        } catch (_) {}
-      }
-    }
-    $('ai-meta').textContent = `${S.model} · ${((Date.now() - started) / 1000).toFixed(1)}秒`;
-    if (text.trim()) {
-      const save = $('ai-save');
-      save.disabled = false; save.style.opacity = '';
-      save.onclick = () => openForm({ word, trans: text.trim(), job: S.job });
-    }
+    const text = await runCompletion(word,
+      t => { out.textContent = t; },
+      () => { ttft = Date.now() - started; out.textContent = ''; });
+    aiCache.set(word, text);
+    finish(text, `初回 ${(ttft / 1000).toFixed(1)}秒 / 全体 ${((Date.now() - started) / 1000).toFixed(1)}秒`);
+    if (!text.trim()) out.innerHTML = '<span class="waiting">答えが返りませんでした。</span>';
   } catch (err) {
-    out.innerHTML = `<span class="waiting">つながりませんでした。${esc(err.message || '')}<br>` +
+    out.innerHTML = `<span class="waiting">${esc(err.message || 'つながりませんでした')}<br>` +
       '電波がない場所では使えません。「ChatGPTで開く」もお試しください。</span>';
   }
 }
@@ -2408,7 +2457,11 @@ function openAskSettings() {
     <div class="note">キーを入れると、アプリを離れずにその場で答えが出ます。アプリの切り替えが無くなるぶん、体感でかなり速くなります。キーはこの端末にだけ保存され、送信先はOpenAIのみです。</div>
     <label for="a-model">モデル</label>
     <input id="a-model" value="${esc(S.model)}" autocapitalize="none" spellcheck="false">
-    <div class="note">速さを優先するなら小型のモデルを。名前が違うと言われたら、ここを書き換えてください。</div>
+    <div class="acts" style="margin-top:6px">
+      <button class="btn" id="a-models">使えるモデルを調べる</button>
+      <span class="spacer"></span>
+    </div>
+    <div class="note" id="a-modellist">速さを優先するなら小型のモデルを。名前が違うと言われたら、ここを書き換えてください。</div>
     <label for="a-tpl">送る質問文</label>
     <textarea id="a-tpl" style="min-height:110px">${esc(S.tpl)}</textarea>
     <div class="note"><code>{word}</code> のところに、探していた語が入ります。</div>
@@ -2422,6 +2475,25 @@ function openAskSettings() {
     $('sheet').querySelectorAll('.gchip').forEach(x => x.classList.toggle('on', x.dataset.s === S.ext));
   });
   $('a-reset').onclick = () => { $('a-tpl').value = DEFAULT_TPL; };
+  $('a-models').onclick = async () => {
+    const key = $('a-key').value.trim();
+    if (!key) { toast('先にAPIキーを入れてください'); return; }
+    $('a-modellist').textContent = '取得中…';
+    try {
+      const res = await fetch('https://api.openai.com/v1/models',
+        { headers: { 'Authorization': 'Bearer ' + key } });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error ? j.error.message : res.statusText);
+      const names = (j.data || []).map(m => m.id)
+        .filter(n => /gpt|o[0-9]|mini|nano|flash|turbo/i.test(n)).sort();
+      $('a-modellist').innerHTML = 'この鍵で使えるモデル。押すと入ります。<div class="gchips">' +
+        names.map(n => `<button class="gchip" data-m="${esc(n)}">${esc(n)}</button>`).join('') + '</div>';
+      $('a-modellist').querySelectorAll('[data-m]').forEach(b =>
+        b.onclick = () => { $('a-model').value = b.dataset.m; });
+    } catch (e) {
+      $('a-modellist').textContent = '取得できませんでした: ' + (e.message || '');
+    }
+  };
   $('a-save').onclick = async () => {
     S.tpl = $('a-tpl').value.trim();
     S.apiKey = $('a-key').value.trim();
