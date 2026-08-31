@@ -228,6 +228,7 @@ main{flex:1 1 auto;display:flex;min-height:340px;border-top:1px solid var(--rule
 .entry h1{font-family:var(--serif);font-size:calc(32px * var(--fs));font-weight:400;line-height:1.16;margin:0 0 5px;letter-spacing:-.005em}
 .entry .pron{font-family:var(--mono);font-size:calc(12.5px * var(--fs));color:var(--grey);margin-bottom:16px;letter-spacing:.02em}
 
+.entry .waiting{color:var(--grey)}
 .entry .trans{white-space:pre-wrap;font-size:calc(18.5px * var(--fs));line-height:1.75}
 .entry .ex{
   margin-top:18px;padding:12px 14px;background:var(--band);border-left:2px solid var(--rule);
@@ -1639,7 +1640,9 @@ const S = {
   recent: [],           // 直前に引いた語
   emptyView: 'recent',  // 検索欄が空のときに何を並べるか
   ext: 'chatgpt',
-  tpl: '「{word}」の意味と定訳を教えてください。専門分野によって訳が分かれる場合は分野ごとに。英日の対訳と、短い用例をひとつ添えてください。',
+  apiKey: '',
+  model: 'gpt-4o-mini',
+  tpl: '「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。',
   groups: [{ id: 'all', name: 'すべて', files: null }],
   activeGroup: 'all',
   results: [],
@@ -2123,7 +2126,7 @@ async function copyText(text) {
 
 function bindFallbackActions() {
   const word = () => q.value.trim();
-  if ($('e-ask')) $('e-ask').onclick = () => askExternal(word());
+  if ($('e-ask')) $('e-ask').onclick = () => lookUp(word());
   if ($('e-add')) $('e-add').onclick = () => openForm({ word: word() });
   if ($('e-copy')) $('e-copy').onclick = async () => {
     toast(await copyText(askPrompt(word())) ? '質問文をコピーしました' : 'コピーできませんでした');
@@ -2275,10 +2278,11 @@ async function saveMine() {
 }
 
 const FS_STEPS = [1, 1.15, 1.3, 1.45, 1.6, 1.8];
-const DEFAULT_TPL = '「{word}」の意味と定訳を教えてください。専門分野によって訳が分かれる場合は分野ごとに。英日の対訳と、短い用例をひとつ添えてください。';
+const DEFAULT_TPL = '「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。';
 async function savePrefs() {
   await store.set(KEY_PREF, JSON.stringify({
-    mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs }));
+    mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs,
+    apiKey: S.apiKey, model: S.model }));
 }
 function applyFs() {
   document.documentElement.style.setProperty('--fs-base', FS_STEPS[S.fs]);
@@ -2305,6 +2309,11 @@ function askPrompt(word) {
     : (S.tpl ? S.tpl + '\n\n' + word : word);
 }
 
+function lookUp(word) {
+  if (S.apiKey && S.ext === 'chatgpt') askInline(word);
+  else askExternal(word);
+}
+
 function askExternal(word) {
   const svc = EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt;
   const url = svc.url(svc.prompt ? askPrompt(word) : word);
@@ -2313,13 +2322,94 @@ function askExternal(word) {
   document.body.appendChild(a); a.click(); a.remove();
 }
 
+/** Ask the model directly and stream the reply into the reading pane. */
+async function askInline(word) {
+  const el = $('detail');
+  el.classList.add('open');
+  el.innerHTML = `
+    <button class="back" id="back">← 一覧</button>
+    <div class="entry">
+      <h1>${esc(word)} <span class="tag">ChatGPT</span></h1>
+      ${SWELL}
+      <div class="trans" id="ai-out"><span class="waiting">照会中…</span></div>
+      <div class="foot">
+        <span class="meta" id="ai-meta">${esc(S.model)}</span>
+        <button class="btn" id="ai-save" disabled style="opacity:.4">マイ辞書に追加</button>
+        <button class="btn" id="ai-web">ChatGPTで開く</button>
+      </div>
+    </div>`;
+  $('back').onclick = () => { el.classList.remove('open'); if (window.innerWidth > 860) detailPlaceholder(); };
+  $('ai-web').onclick = () => askExternal(word);
+  const out = $('ai-out');
+  let text = '';
+  const started = Date.now();
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey },
+      body: JSON.stringify({
+        model: S.model,
+        stream: true,
+        messages: [
+          { role: 'system', content: '会議通訳者の用語照会に答えます。簡潔に、訳語を中心に。前置き・注釈・挨拶は書かない。' },
+          { role: 'user', content: askPrompt(word) },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      let msg = res.status + ' ' + res.statusText;
+      try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch (_) {}
+      out.innerHTML = `<span class="waiting">応答がありません。<br>${esc(msg)}</span>`;
+      return;
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    out.textContent = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === '[DONE]') continue;
+        try {
+          const j = JSON.parse(payload);
+          const piece = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
+          if (piece) { text += piece; out.textContent = text; }
+        } catch (_) {}
+      }
+    }
+    $('ai-meta').textContent = `${S.model} · ${((Date.now() - started) / 1000).toFixed(1)}秒`;
+    if (text.trim()) {
+      const save = $('ai-save');
+      save.disabled = false; save.style.opacity = '';
+      save.onclick = () => openForm({ word, trans: text.trim(), job: S.job });
+    }
+  } catch (err) {
+    out.innerHTML = `<span class="waiting">つながりませんでした。${esc(err.message || '')}<br>` +
+      '電波がない場所では使えません。「ChatGPTで開く」もお試しください。</span>';
+  }
+}
+
 function openAskSettings() {
   sheet(`
     <h2>調べる先</h2>
     <div class="note">辞書に見つからなかったとき、この宛先に飛ばします。ChatGPTだけは質問文をそのまま渡せます。ほかは語をそのまま検索します。</div>
     <div class="gchips">${Object.entries(EXT_SERVICES).map(([k, v]) =>
       `<button class="gchip${k === S.ext ? ' on' : ''}" data-s="${k}">${v.name}</button>`).join('')}</div>
-    <label for="a-tpl">ChatGPTに送る質問文</label>
+    <label for="a-key">OpenAI APIキー（任意）</label>
+    <input id="a-key" type="password" value="${esc(S.apiKey)}" placeholder="sk-… 空欄ならブラウザで開きます"
+      autocomplete="off" autocapitalize="none" spellcheck="false">
+    <div class="note">キーを入れると、アプリを離れずにその場で答えが出ます。アプリの切り替えが無くなるぶん、体感でかなり速くなります。キーはこの端末にだけ保存され、送信先はOpenAIのみです。</div>
+    <label for="a-model">モデル</label>
+    <input id="a-model" value="${esc(S.model)}" autocapitalize="none" spellcheck="false">
+    <div class="note">速さを優先するなら小型のモデルを。名前が違うと言われたら、ここを書き換えてください。</div>
+    <label for="a-tpl">送る質問文</label>
     <textarea id="a-tpl" style="min-height:110px">${esc(S.tpl)}</textarea>
     <div class="note"><code>{word}</code> のところに、探していた語が入ります。</div>
     <div class="acts">
@@ -2334,6 +2424,8 @@ function openAskSettings() {
   $('a-reset').onclick = () => { $('a-tpl').value = DEFAULT_TPL; };
   $('a-save').onclick = async () => {
     S.tpl = $('a-tpl').value.trim();
+    S.apiKey = $('a-key').value.trim();
+    S.model = $('a-model').value.trim() || 'gpt-4o-mini';
     await savePrefs();
     closeSheet(); toast('保存しました'); updateStatus(); run();
   };
@@ -2394,7 +2486,7 @@ function askTarget() {
 $('askBtn').onclick = () => {
   const w = askTarget();
   if (!w) { q.focus(); toast('調べたい語を入れてください'); return; }
-  askExternal(w);
+  lookUp(w);
 };
 $('askBtn').oncontextmenu = e => { e.preventDefault(); openAskSettings(); };
 $('mineBtn').onclick = () => openMine();
@@ -3048,7 +3140,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowUp') { moveSelection(-1); e.preventDefault(); return; }
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
     const w = askTarget();
-    if (w) askExternal(w);
+    if (w) lookUp(w);
     e.preventDefault(); return;
   }
   if (e.key === 'Enter' && document.activeElement === q) {
@@ -3089,6 +3181,8 @@ $('updateGo').onclick = () => location.reload();
     if (typeof p.tpl === 'string' && p.tpl) S.tpl = p.tpl;
     if (typeof p.job === 'string') S.job = p.job;
     if (Array.isArray(p.jobs)) S.jobs = p.jobs.filter(x => typeof x === 'string');
+    if (typeof p.apiKey === 'string') S.apiKey = p.apiKey;
+    if (typeof p.model === 'string' && p.model) S.model = p.model;
   } catch (_) {}
   applyFs();
   await loadGroups();
