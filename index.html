@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  Tasha's Lexicon
+  Copyright (c) 2026 Noriko Kato. All rights reserved.
+
+  無断複製・再配布・改変を禁じます。
+  Unauthorised copying, redistribution or modification is prohibited.
+  Contact the author for permission to distribute.
+-->
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -9,6 +17,8 @@
 <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAD/0lEQVR42u2aTWxVVRDHz8w599u+tpTSFI0EjTHFkqhgEwupKGpIjCaQqKwMbozRlRpXSlciC6Ou1ERhw8aPhV1JIlasJUXEkqAiVhtpIOCzLVBpebev955zxsV1afpOH/e9d1+8sz6L85uZM/+ZzIG1G3axZjZkTW45QA6QA+QAjTVheA6AISCD2t+IGAOmNRFRagAAoLVeCEt18iox17VtW2hNKQAAQBTFnudsH9jEec1TjogQceL385eKl33fqcggTHzvec7HHw329/XWLbOL01effHZwYvKC59rLM1QAQISF6+VHtm3u7+uNohgADL2YwFd1eZBSdnet2vnYwOv7DgS+q7VK4w0QAQCiUQolmaaUrrIyIhIREZl4wDSn0dj3iDB57uLkuYuIYFhJ/tNlKZdRQ9NEAuC3yQuMsTtuu0UT8ZUnEhFJpUxKUPoAidm2Vb0LtLYswTkGvmsSwJoAVJ05WpNliemZuaHDx4ZHx33fvdEyWk9LfP/J50f37j94qTjruY7nOlrr5gBQStu2OH7yl+deest1nTUd7UqrdJS4Tk0lgpTq7fc+RQDfs+NYNlM3SkRC8GvzpTO//uG6jpQrEJAMtdOIyDlvynkAAKJItrUG2wc2zS+UbFs0XwQS6X35hafWdq+enp3jiIZijFl6xHr9uu6hQ/se3XbfQmmxvBSZMGTqDUAcq40b1g8deuPEkQ/27N4xv1CqOIH8b2biuigxWRb/+ezU4P6DI2OnOcdCS1CxJxfZub0QOHW+uPOZ14rTVzraCpqM5vqspFBy13fe/+zP4uWuznaltWFHmBUltm3x97XS16OnCi1BFMkVPP1MdaNKqWZVYilVayHo7bm9XF4SApsvAlqTEPyVF5/WROFiZAmB2FRKzDnGsezvu+vDd19tbfH/mrl6vVQ2YciQDiBiHKvdux56YMvdwyPjX3z13ZFvfgh8b/mhLItK3N21auv9G2+9uUvGqmI3lEUl3vvmgZGx04LzQiFX4lyJcyXOlThX4iqUuBDMXJkLF5dMZuIsKvGDW+8ZOnzsy6MnR4//6HtuA5QYAKrbLyFCHMvVHa3P73ni4YHNYVi5HapJBGIpbywOkhgvheUGpBAAEFFnR1tS3auLAwAIzg0fsREAkeneHAG0pr57exhjSmmE6lf7qW3qicgSIinVyImRSQopxqr9lgBMSuU4lm1bKayYtCbPdc5MTM3Mzq3pbK9POXJsizE29v1PjmNXZICKn/4QIQyXeu5c9/iOLfzfvKzhnw8i4hxPjJ8d/nbc99wUABKGxXIUhuW6aYJtWzcFXmpbSq3Jc+3Ad+vXn2pSWqdWhRKG5f8sNEy/WZNbDpAD5AA5QGPtH4nZEHEgR+TZAAAAAElFTkSuQmCC">
 <meta name="theme-color" content="#1A2A52">
 <meta name="apple-mobile-web-app-title" content="Tasha’s Lexicon">
+<meta name="author" content="Noriko Kato">
+<meta name="copyright" content="Copyright (c) 2026 Noriko Kato. All rights reserved.">
 <title>Tasha’s Lexicon — PDIC辞書ビューア</title>
 <style>
 @font-face{
@@ -238,6 +248,8 @@ footer{
 }
 footer .spacer{flex:1 1 auto}
 footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
+.colophon{font-family:var(--mono);font-size:calc(10.5px * var(--fs)) !important;
+  color:var(--grey) !important;letter-spacing:.04em}
 .fs{display:flex;align-items:center;gap:2px;flex:0 0 auto}
 .fs button{
   width:30px;height:26px;border:1px solid var(--rule);border-radius:2px;background:var(--paper);
@@ -385,6 +397,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button id="fsDown" aria-label="文字を小さく">A</button>
     <button id="fsUp" aria-label="文字を大きく">A</button>
   </span>
+  <button id="aboutBtn" class="colophon">© Noriko Kato</button>
   <button id="askSetBtn">調べる先</button>
   <button id="groupBtn">グループ</button>
   <button id="mineBtn">マイ辞書</button>
@@ -2326,6 +2339,48 @@ function openAskSettings() {
   };
 }
 
+const AUTHOR = 'Noriko Kato';
+const YEAR = '2026';
+
+function openAbout() {
+  sheet(`
+    <h2>Tasha’s Lexicon</h2>
+    <div class="note" style="margin-top:0">
+      通訳・翻訳のための用語集アプリ。PDIC辞書とEPWING辞書を読み、
+      自分の用語集をExcelから取り込んで持ち歩けます。
+    </div>
+
+    <label>著作権</label>
+    <div class="note" style="margin-top:2px">
+      Copyright &copy; ${YEAR} ${esc(AUTHOR)}. All rights reserved.<br>
+      本アプリの著作権は作者に帰属します。
+    </div>
+
+    <label>ご利用について</label>
+    <div class="note" style="margin-top:2px">
+      作者の許可なく、複製・再配布・改変・公開することを禁じます。
+      同僚の方にお使いいただく場合も、作者からURLをお伝えします。
+      ファイルそのものを転送・転載しないでください。<br><br>
+      Unauthorised copying, redistribution, modification or publication
+      is prohibited. Please contact the author for permission.
+    </div>
+
+    <label>データの取り扱い</label>
+    <div class="note" style="margin-top:2px">
+      辞書ファイルも用語集も、お使いの端末の中だけに保存されます。
+      作者を含む第三者に送信されることはありません。
+      辞書データそのものはこのアプリに含まれていません。
+      各辞書の利用条件は、その辞書の提供元にお従いください。
+    </div>
+
+    <div class="acts">
+      <span class="spacer"></span>
+      <button class="btn" id="ab-close">閉じる</button>
+    </div>`);
+  $('ab-close').onclick = closeSheet;
+}
+
+$('aboutBtn').onclick = () => openAbout();
 $('askSetBtn').onclick = () => openAskSettings();
 
 /** The word the lookup button should use: what's typed, else what's open. */
