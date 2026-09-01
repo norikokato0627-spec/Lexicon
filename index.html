@@ -1157,6 +1157,25 @@ function colName(i) {
  * header and frozen. Returns the bytes of an .xlsx file.
  */
 function buildXlsx(rows, sheetName = 'Sheet1') {
+  // Numbers does not grow rows on import, so work out the height here.
+  const colChars = (i) => (i === 0 ? 34 : i === 1 ? 44 : i === 2 ? 34 : i === 3 ? 18 : 14);
+  const visualWidth = (t) => {
+    let n = 0;
+    for (const ch of String(t)) n += ch.codePointAt(0) < 0x2e80 ? 1 : 2;
+    return n;
+  };
+  const rowHeight = (row) => {
+    let lines = 1;
+    row.forEach((v, c) => {
+      const t = String(v == null ? '' : v);
+      if (!t) return;
+      const own = t.split('\n').reduce((n, seg) =>
+        n + Math.max(1, Math.ceil(visualWidth(seg) / (colChars(c) - 1))), 0);
+      lines = Math.max(lines, own);
+    });
+    return Math.min(180, 6 + lines * 18);
+  };
+
   const body = rows.map((row, r) => {
     const style = r === 0 ? 1 : 2;
     const cells = row.map((v, c) => {
@@ -1166,9 +1185,9 @@ function buildXlsx(rows, sheetName = 'Sheet1') {
       if (!text) return `<c r="${ref}" s="${style}"/>`;
       return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(text)}</t></is></c>`;
     }).join('');
-    // the header keeps a fixed height; body rows carry no height at all so
-    // Excel and Numbers grow them to fit the wrapped text
-    const attrs = r === 0 ? ' ht="30" customHeight="1"' : '';
+    const attrs = r === 0
+      ? ' ht="30" customHeight="1"'
+      : ` ht="${rowHeight(row)}" customHeight="1"`;
     return `<row r="${r + 1}"${attrs} s="${style}" customFormat="1">${cells}</row>`;
   }).join('');
 
