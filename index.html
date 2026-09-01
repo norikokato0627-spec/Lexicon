@@ -1158,24 +1158,28 @@ function colName(i) {
  */
 function buildXlsx(rows, sheetName = 'Sheet1') {
   const body = rows.map((row, r) => {
+    const style = r === 0 ? 1 : 2;
     const cells = row.map((v, c) => {
       const ref = colName(c) + (r + 1);
-      if (typeof v === 'number' && isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+      if (typeof v === 'number' && isFinite(v)) return `<c r="${ref}" s="${style}"><v>${v}</v></c>`;
       const text = String(v == null ? '' : v);
-      if (!text) return '';
-      return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(text)}</t></is></c>`;
+      if (!text) return `<c r="${ref}" s="${style}"/>`;
+      return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(text)}</t></is></c>`;
     }).join('');
-    return `<row r="${r + 1}">${cells}</row>`;
+    // the header keeps a fixed height; body rows grow to fit wrapped text
+    const attrs = r === 0 ? ' ht="30" customHeight="1"' : ' ht="24"';
+    return `<row r="${r + 1}"${attrs} s="${style}" customFormat="1">${cells}</row>`;
   }).join('');
 
   const width = rows.reduce((n, r) => Math.max(n, r.length), 1);
   const cols = Array.from({ length: width }, (_, i) =>
-    `<col min="${i + 1}" max="${i + 1}" width="${i === 1 ? 46 : i === 2 ? 34 : 22}" customWidth="1"/>`).join('');
+    `<col min="${i + 1}" max="${i + 1}" width="${i === 1 ? 46 : i === 2 ? 34 : 20}" customWidth="1" style="2"/>`).join('');
 
   const sheet =
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<sheetFormatPr defaultRowHeight="24" defaultColWidth="22"/>
 <cols>${cols}</cols>
 <sheetData>${body}</sheetData></worksheet>`;
 
@@ -1187,6 +1191,7 @@ function buildXlsx(rows, sheetName = 'Sheet1') {
 <Default Extension="xml" ContentType="application/xml"/>
 <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
 <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>`],
     ['_rels/.rels',
       `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1202,7 +1207,34 @@ function buildXlsx(rows, sheetName = 'Sheet1') {
       `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>`],
+    ['xl/styles.xml',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2">
+<font><sz val="12"/><color rgb="FF1C1E24"/><name val="Helvetica Neue"/></font>
+<font><b/><sz val="12"/><color rgb="FF1A2A52"/><name val="Helvetica Neue"/></font>
+</fonts>
+<fills count="3">
+<fill><patternFill patternType="none"/></fill>
+<fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFF0F1F3"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="2">
+<border><left/><right/><top/><bottom/><diagonal/></border>
+<border><left/><right/><top/><bottom style="thin"><color rgb="FFCFD3DA"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="3">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">
+<alignment vertical="center"/></xf>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1">
+<alignment vertical="top" wrapText="1"/></xf>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`],
     ['xl/worksheets/sheet1.xml', sheet],
   ]);
 }
