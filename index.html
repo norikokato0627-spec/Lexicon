@@ -1166,20 +1166,23 @@ function buildXlsx(rows, sheetName = 'Sheet1') {
       if (!text) return `<c r="${ref}" s="${style}"/>`;
       return `<c r="${ref}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(text)}</t></is></c>`;
     }).join('');
-    // the header keeps a fixed height; body rows grow to fit wrapped text
-    const attrs = r === 0 ? ' ht="30" customHeight="1"' : ' ht="24"';
+    // the header keeps a fixed height; body rows carry no height at all so
+    // Excel and Numbers grow them to fit the wrapped text
+    const attrs = r === 0 ? ' ht="30" customHeight="1"' : '';
     return `<row r="${r + 1}"${attrs} s="${style}" customFormat="1">${cells}</row>`;
   }).join('');
 
   const width = rows.reduce((n, r) => Math.max(n, r.length), 1);
   const cols = Array.from({ length: width }, (_, i) =>
-    `<col min="${i + 1}" max="${i + 1}" width="${i === 1 ? 46 : i === 2 ? 34 : 20}" customWidth="1" style="2"/>`).join('');
+    `<col min="${i + 1}" max="${i + 1}" width="${
+      i === 0 ? 34 : i === 1 ? 44 : i === 2 ? 34 : i === 3 ? 18 : 14
+    }" customWidth="1" style="2"/>`).join('');
 
   const sheet =
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
 <sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
-<sheetFormatPr defaultRowHeight="24" defaultColWidth="22"/>
+<sheetFormatPr defaultRowHeight="20" defaultColWidth="18"/>
 <cols>${cols}</cols>
 <sheetData>${body}</sheetData></worksheet>`;
 
