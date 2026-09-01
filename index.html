@@ -1067,6 +1067,148 @@ async function parseXlsx(buf, maxRows = 20000) {
 
 
 /* ------------------------------------------------------------------
+   Writing .xlsx without a library.
+   An xlsx is a ZIP of XML; entries are stored uncompressed, which is
+   valid ZIP and opens in Excel, Numbers and Google Sheets.
+   ------------------------------------------------------------------ */
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function zipStore(entries) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+
+  const push = (arr) => { parts.push(arr); offset += arr.length; };
+  const w2 = (v) => [v & 0xff, (v >> 8) & 0xff];
+  const w4 = (v) => [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >>> 24) & 0xff];
+
+  for (const [name, text] of entries) {
+    const nameBytes = enc.encode(name);
+    const data = enc.encode(text);
+    const crc = crc32(data);
+    const local = [
+      ...w4(0x04034b50), ...w2(20), ...w2(0x0800), ...w2(0),
+      ...w2(0), ...w2(0),                       // time, date
+      ...w4(crc), ...w4(data.length), ...w4(data.length),
+      ...w2(nameBytes.length), ...w2(0),
+    ];
+    const at = offset;
+    push(Uint8Array.from(local));
+    push(nameBytes);
+    push(data);
+    central.push({ name: nameBytes, crc, size: data.length, at });
+  }
+
+  const dirStart = offset;
+  for (const e of central) {
+    const head = [
+      ...w4(0x02014b50), ...w2(20), ...w2(20), ...w2(0x0800), ...w2(0),
+      ...w2(0), ...w2(0),
+      ...w4(e.crc), ...w4(e.size), ...w4(e.size),
+      ...w2(e.name.length), ...w2(0), ...w2(0), ...w2(0), ...w2(0),
+      ...w4(0), ...w4(e.at),
+    ];
+    push(Uint8Array.from(head));
+    push(e.name);
+  }
+  const dirSize = offset - dirStart;
+  push(Uint8Array.from([
+    ...w4(0x06054b50), ...w2(0), ...w2(0),
+    ...w2(central.length), ...w2(central.length),
+    ...w4(dirSize), ...w4(dirStart), ...w2(0),
+  ]));
+
+  const out = new Uint8Array(offset);
+  let p = 0;
+  for (const a of parts) { out.set(a, p); p += a.length; }
+  return out;
+}
+
+const xmlEsc = (s) => String(s == null ? '' : s)
+  .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+function colName(i) {
+  let s = '';
+  i += 1;
+  while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = ((i - m) / 26) | 0; }
+  return s;
+}
+
+/**
+ * rows: array of arrays of strings/numbers. The first row is treated as a
+ * header and frozen. Returns the bytes of an .xlsx file.
+ */
+function buildXlsx(rows, sheetName = 'Sheet1') {
+  const body = rows.map((row, r) => {
+    const cells = row.map((v, c) => {
+      const ref = colName(c) + (r + 1);
+      if (typeof v === 'number' && isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+      const text = String(v == null ? '' : v);
+      if (!text) return '';
+      return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(text)}</t></is></c>`;
+    }).join('');
+    return `<row r="${r + 1}">${cells}</row>`;
+  }).join('');
+
+  const width = rows.reduce((n, r) => Math.max(n, r.length), 1);
+  const cols = Array.from({ length: width }, (_, i) =>
+    `<col min="${i + 1}" max="${i + 1}" width="${i === 1 ? 46 : i === 2 ? 34 : 22}" customWidth="1"/>`).join('');
+
+  const sheet =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+<cols>${cols}</cols>
+<sheetData>${body}</sheetData></worksheet>`;
+
+  return zipStore([
+    ['[Content_Types].xml',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`],
+    ['_rels/.rels',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`],
+    ['xl/workbook.xml',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+ xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="${xmlEsc(sheetName).slice(0, 31)}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+    ['xl/_rels/workbook.xml.rels',
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`],
+    ['xl/worksheets/sheet1.xml', sheet],
+  ]);
+}
+
+
+/* ------------------------------------------------------------------
    EPWING / JIS X 4081 reader.
    Structure and constants follow the eb library, which is the de-facto
    reference for this undocumented format. Big-endian throughout.
@@ -2826,6 +2968,7 @@ function openMine() {
     <div class="acts">
       <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
       <button class="btn" id="x-share">共有</button>
+      <button class="btn" id="x-xl">Excelで書き出す</button>
       <button class="btn" id="x-csv">CSVで書き出す</button>
       <button class="btn" id="x-json">バックアップを書き出す</button>
       <button class="btn" id="x-xlsx">Excelから読み込む</button>
@@ -2946,6 +3089,36 @@ function openMine() {
     } catch (err) {
       $('x-note').textContent = '書き出しに失敗しました: ' + (err.message || err);
     }
+  };
+
+  $('x-xl').onclick = async () => {
+    const target = mineInJob();
+    if (!target.length) { toast('書き出す語がありません'); return; }
+    const rows = [['見出し語', '訳語', '用例', '発音', 'レベル', '案件']];
+    for (const e of target) {
+      rows.push([e.word, e.trans || '', e.example || '', e.pron || '', e.level || 0, e.job || '']);
+    }
+    const name = (S.job ? S.job.replace(/[\\/:*?"<>|]/g, '_') : 'マイ辞書') + '.xlsx';
+    let bytes;
+    try { bytes = buildXlsx(rows, (S.job || 'マイ辞書').slice(0, 31)); }
+    catch (err) { $('x-note').textContent = '作成に失敗しました: ' + (err.message || err); return; }
+    const type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    try {
+      const f = new File([bytes], name, { type });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) {
+        await navigator.share({ files: [f], title: S.job || 'マイ辞書' });
+        $('x-note').innerHTML = `${target.length}語をExcel形式で書き出しました。` +
+          '見出し行がそのまま列名になるので、編集して読み込み直せます。';
+        return;
+      }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+    const blob = new Blob([bytes], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    $('x-note').innerHTML = `${target.length}語をExcel形式で書き出しました。` +
+      '見出し行がそのまま列名になるので、編集して「Excelから読み込む」で戻せます。';
   };
 
   $('x-csv').onclick = () => {
