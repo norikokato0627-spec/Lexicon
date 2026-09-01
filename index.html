@@ -2763,6 +2763,85 @@ $('groupBtn').onclick = () => openGroups();
 /* ==================================================================
    dictionary groups
    ================================================================== */
+const XL_ROW_LIMIT = 100000;
+
+/** Read a whole PDIC dictionary out into a spreadsheet. */
+async function exportDictionary(entry) {
+  const dict = entry.dict;
+  if (dict.epwing) { toast('EPWING辞書は全件の書き出しに対応していません'); return; }
+
+  sheet(`<h2>${esc(entry.name)} を書き出す</h2>
+    <div class="note" id="xd-note">${dict.nword.toLocaleString()}語を読み出します。
+    しばらくかかります。画面をそのままにしてください。</div>
+    <div class="progress on" style="width:100%;margin-top:12px"><i id="xd-bar"></i></div>
+    <div class="acts"><span class="spacer"></span>
+    <button class="btn" id="xd-stop">中止</button></div>`);
+
+  let cancelled = false;
+  $('xd-stop').onclick = () => { cancelled = true; closeSheet(); };
+
+  const rows = [['見出し語', '訳語', '用例', '発音', 'レベル']];
+  let last = Date.now();
+  await dict.scan(async (entries, p) => {
+    for (const e of entries) {
+      rows.push([e.word, e.trans || '', e.example || '', e.pron || '', e.level || 0]);
+      if (rows.length > XL_ROW_LIMIT) return true;
+    }
+    if (Date.now() - last > 120) {
+      last = Date.now();
+      const bar = $('xd-bar');
+      if (bar) bar.style.width = (p * 100).toFixed(1) + '%';
+      const note = $('xd-note');
+      if (note) note.textContent = `${(rows.length - 1).toLocaleString()}語を読み出しました…`;
+      await new Promise(r => setTimeout(r, 0));
+    }
+    return cancelled;
+  });
+  if (cancelled) return;
+
+  const truncated = rows.length > XL_ROW_LIMIT;
+  if (truncated) rows.length = XL_ROW_LIMIT + 1;
+
+  const name = entry.name.replace(/[\\/:*?"<>|]/g, '_') + '.xlsx';
+  const type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  let bytes;
+  try { bytes = buildXlsx(rows, entry.name.slice(0, 31)); }
+  catch (err) {
+    sheet(`<h2>書き出せませんでした</h2><div class="note">${esc(err.message || String(err))}<br>
+      語数が多すぎる可能性があります。CSVをお試しください。</div>
+      <div class="acts"><span class="spacer"></span><button class="btn" id="xe-close">閉じる</button></div>`);
+    $('xe-close').onclick = closeSheet;
+    return;
+  }
+
+  const done = (how) => {
+    sheet(`<h2>書き出しました</h2>
+      <div class="note">${(rows.length - 1).toLocaleString()}語。${how}${
+        truncated ? `<br><br>語数が多いため${XL_ROW_LIMIT.toLocaleString()}語で打ち切りました。
+        表計算ソフトが扱える上限に近いためです。` : ''}
+      <br><br>書き出した内容は辞書の中身そのものです。ご自身でお使いになる範囲にとどめ、
+      配布はなさらないでください。</div>
+      <div class="acts"><span class="spacer"></span><button class="btn" id="xd-close">閉じる</button></div>`);
+    $('xd-close').onclick = closeSheet;
+  };
+
+  try {
+    const f = new File([bytes], name, { type });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], title: entry.name });
+      done('共有先に渡しました。');
+      return;
+    }
+  } catch (err) { if (err && err.name === 'AbortError') { closeSheet(); return; } }
+
+  const blob = new Blob([bytes], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  done('ファイルとして保存しました。');
+}
+
 async function openGroups() {
   const saved = await savedDicts.list();
   const g = curGroup();
@@ -2778,7 +2857,9 @@ async function openGroups() {
       <button class="tick${on ? ' on' : ''}" data-tick="${esc(d.name)}"
         aria-label="${on ? '検索から外す' : '検索に加える'}">${on ? '✓' : ''}</button>
       <span class="nm">${esc(d.name)}</span>
-      <span class="n">${d.dict.nword.toLocaleString()}</span>
+      <span class="n">${d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span>
+      <button class="mv" data-xl="${esc(d.name)}" aria-label="Excelで書き出す"
+        ${d.dict.epwing ? 'disabled style="opacity:.25"' : ''}>XL</button>
       <button class="mv" data-up="${i}" ${!on || i === 0 ? 'disabled style="opacity:.25"' : ''}>↑</button>
       <button class="mv" data-down="${i}" ${!on || i >= n - 1 ? 'disabled style="opacity:.25"' : ''}>↓</button>
     </div>`;
@@ -2878,6 +2959,11 @@ async function openGroups() {
   };
   $('sheet').querySelectorAll('[data-up]').forEach(b => b.onclick = () => move(+b.dataset.up, -1));
   $('sheet').querySelectorAll('[data-down]').forEach(b => b.onclick = () => move(+b.dataset.down, 1));
+  $('sheet').querySelectorAll('[data-xl]').forEach(b => b.onclick = () => {
+    const d = S.dicts.find(x => x.name === b.dataset.xl);
+    if (d) exportDictionary(d);
+  });
+
   $('sheet').querySelectorAll('[data-forget]').forEach(b => b.onclick = async () => {
     const name = b.dataset.forget;
     if (!await askConfirm(`「${name}」を端末から削除します。元のファイルは消えません。`,
