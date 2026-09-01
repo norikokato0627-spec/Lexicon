@@ -2520,6 +2520,15 @@ function openAbout() {
       is prohibited. Please contact the author for permission.
     </div>
 
+    <label>保存場所について</label>
+    <div class="note" style="margin-top:2px">
+      Safariのタブで開いた場合と、ホーム画面のアイコンから開いた場合とで、
+      iOSは保存領域を分けます。ホーム画面のアプリは最初は空です。
+      引き継ぐには、Safari側の「マイ辞書」→「バックアップを書き出す」でコピーし、
+      アプリ側の「貼り付けて読み込む」に貼ってください。辞書ファイルは開き直しになります。<br>
+      日常はホーム画面のアイコンからお使いください。そちらのデータはiOSに消されません。
+    </div>
+
     <label>データの取り扱い</label>
     <div class="note" style="margin-top:2px">
       辞書ファイルも用語集も、お使いの端末の中だけに保存されます。
@@ -2945,23 +2954,54 @@ function openMine() {
     show(csv, 'PDICの<code>辞書設定&lt;詳細&gt; → 辞書変換</code>でCSV形式として取り込めます。1行目の見出しは <code>word,trans,exp,level,pron</code> です。保存できないときは、上の内容をコピーしてテキストとして貼り付けてください。');
   };
   $('x-json').onclick = () => {
-    const j = JSON.stringify({ entries: mineInJob() }, null, 1);
-    download(j, 'mydict-backup.json', 'utf8');
-    show(j, 'この内容を保存しておけば、別の端末の「読み込む」で復元できます。');
+    const j = JSON.stringify({
+      version: 2,
+      entries: S.mine,
+      jobs: S.jobs,
+      job: S.job,
+      groups: S.groups,
+      activeGroup: S.activeGroup,
+      recent: S.recent,
+      prefs: { mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, model: S.model, apiKey: S.apiKey },
+      dictionaries: S.dicts.map(d => d.file || d.name),
+    }, null, 1);
+    download(j, 'lexicon-backup.json', 'utf8');
+    show(j, '用語集だけでなく、案件・グループ・履歴・設定もすべて含まれます。' +
+      'ホーム画面のアプリで「貼り付けて読み込む」に貼れば、そのまま引き継げます。' +
+      '辞書ファイルだけは容量の都合で含まれないので、あちらで開き直してください。');
   };
   $('x-xlsx').onclick = () => $('xlsxFile').click();
 
   $('x-imp').onclick = () => {
     sheet(`<h2>マイ辞書を読み込む</h2>
-      <div class="note">バックアップのJSON、または <code>見出し語,訳語</code> のCSVを貼り付けてください。今ある語に追加されます。</div>
+      <div class="note">バックアップのJSON、または <code>見出し語,訳語</code> のCSVを貼り付けてください。
+      同じ案件に同じ見出し語があれば飛ばします。JSONの場合は案件・グループ・履歴・設定も引き継ぎます。</div>
       <textarea class="out" id="i-in" style="height:200px"></textarea>
       <div class="acts"><button class="btn" id="i-cancel">やめる</button><span class="spacer"></span>
       <button class="btn primary" id="i-go">追加する</button></div>`);
     $('i-cancel').onclick = openMine;
     $('i-go').onclick = async () => {
       const n = importText($('i-in').value);
-      if (!n) { toast('読み取れませんでした'); return; }
-      await saveMine(); closeSheet(); updateStatus(); run(); toast(`${n}語を追加しました`);
+      if (!n && !S.restoredDicts) { toast('読み取れませんでした'); return; }
+      await saveMine(); await savePrefs(); await saveGroups();
+      applyFs();
+      for (const m of ['prefix', 'exact', 'full'])
+        $('m-' + m).setAttribute('aria-pressed', String(m === S.mode));
+      closeSheet(); updateStatus(); run();
+      const need = (S.restoredDicts || []).filter(x => !S.dicts.some(d => d.name === x || d.file === x));
+      S.restoredDicts = null;
+      if (need.length) {
+        sheet(`<h2>引き継ぎました</h2>
+          <div class="note">${n}語と、案件・グループ・履歴・設定を読み込みました。<br><br>
+          辞書ファイルはこちらにまだありません。「辞書を開く」から、以下を選び直してください。</div>
+          ${need.map(x => `<div class="drow"><span class="nm">${esc(x)}</span></div>`).join('')}
+          <div class="acts"><button class="btn" id="r-close">あとで</button><span class="spacer"></span>
+          <button class="btn primary" id="r-open">辞書を開く</button></div>`);
+        $('r-close').onclick = closeSheet;
+        $('r-open').onclick = () => { closeSheet(); $('file').click(); };
+      } else {
+        toast(`${n}語を引き継ぎました`);
+      }
     };
   };
 }
@@ -3099,10 +3139,27 @@ function importText(text) {
   if (text.startsWith('{')) {
     try {
       const j = JSON.parse(text);
+      const have = new Set(S.mine.map(e => e.word + '\u0000' + (e.job || '')));
       for (const e of (j.entries || [])) {
         if (!e.word) continue;
+        if (have.has(e.word + '\u0000' + (e.job || ''))) continue;
         S.mine.push({ ...e, id: e.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) });
         added++;
+      }
+      if (j.version >= 2) {
+        if (Array.isArray(j.jobs)) S.jobs = [...new Set([...S.jobs, ...j.jobs])];
+        if (typeof j.job === 'string') S.job = j.job;
+        if (Array.isArray(j.groups) && j.groups.length) S.groups = j.groups;
+        if (j.activeGroup) S.activeGroup = j.activeGroup;
+        if (Array.isArray(j.recent)) S.recent = j.recent.slice(0, RECENT_MAX);
+        const p = j.prefs || {};
+        if (p.mode) S.mode = p.mode;
+        if (typeof p.fs === 'number') S.fs = p.fs;
+        if (p.ext) S.ext = p.ext;
+        if (p.tpl) S.tpl = p.tpl;
+        if (p.model) S.model = p.model;
+        if (p.apiKey) S.apiKey = p.apiKey;
+        S.restoredDicts = j.dictionaries || [];
       }
     } catch (_) { return 0; }
   } else {
