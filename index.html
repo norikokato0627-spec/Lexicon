@@ -1819,29 +1819,50 @@ const store = (() => {
    Dictionaries kept on the device, so they need picking only once.
    Falls back silently when IndexedDB isn't available.
    ------------------------------------------------------------------ */
-const IDB_NAME = 'lexicon', IDB_STORE = 'dicts';
+const IDB_NAME = 'lexicon', IDB_STORE = 'dicts', IDB_KV = 'kv';
 
 function idbOpen() {
   return new Promise((res, rej) => {
     if (typeof indexedDB === 'undefined') return rej(new Error('no indexeddb'));
-    const r = indexedDB.open(IDB_NAME, 1);
+    const r = indexedDB.open(IDB_NAME, 2);
     r.onupgradeneeded = () => {
       if (!r.result.objectStoreNames.contains(IDB_STORE))
         r.result.createObjectStore(IDB_STORE, { keyPath: 'name' });
+      if (!r.result.objectStoreNames.contains(IDB_KV))
+        r.result.createObjectStore(IDB_KV, { keyPath: 'key' });
     };
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
 }
 
-function idbTx(mode, fn) {
+function idbTx(mode, fn, storeName) {
   return idbOpen().then(db => new Promise((res, rej) => {
-    const tx = db.transaction(IDB_STORE, mode);
-    const req = fn(tx.objectStore(IDB_STORE));
-    tx.oncomplete = () => res(req && req.result);
-    tx.onerror = tx.onabort = () => rej(tx.error);
+    try {
+      const tx = db.transaction(storeName || IDB_STORE, mode);
+      const req = fn(tx.objectStore(storeName || IDB_STORE));
+      tx.oncomplete = () => res(req && req.result);
+      tx.onerror = tx.onabort = () => rej(tx.error);
+    } catch (err) { rej(err); }
   }));
 }
+
+/** The glossary itself, kept where there is room to grow. */
+const mineStore = {
+  async load() {
+    try {
+      const rec = await idbTx('readonly', st => st.get('mine'), IDB_KV);
+      if (rec && Array.isArray(rec.entries)) return rec.entries;
+    } catch (_) {}
+    return null;
+  },
+  async save(entries) {
+    try {
+      await idbTx('readwrite', st => st.put({ key: 'mine', entries }), IDB_KV);
+      return true;
+    } catch (_) { return false; }
+  },
+};
 
 const savedDicts = {
   async list() { try { return (await idbTx('readonly', st => st.getAll())) || []; } catch (_) { return []; } },
@@ -2125,72 +2146,130 @@ function epLog(lines, done) {
   if (done && $('ep-close')) $('ep-close').onclick = closeSheet;
 }
 
+/** Group the files of a zip into books, one per CATALOGS. */
+function groupBooks(names, sizeOf) {
+  const base = (n) => n.split('/').pop().toLowerCase();
+  const cats = names.filter(n => base(n).startsWith('catalogs'));
+  const books = cats.map(c => ({
+    catalogs: c,
+    dir: c.slice(0, c.lastIndexOf('/') + 1),
+    honmons: [],
+    size: 0,
+  })).sort((a, b) => b.dir.length - a.dir.length);   // deepest first
+
+  for (const n of names) {
+    if (!base(n).startsWith('honmon')) continue;
+    const owner = books.find(b => n.toLowerCase().startsWith(b.dir.toLowerCase()));
+    if (owner) { owner.honmons.push(n); owner.size += sizeOf(n); }
+  }
+  return books.filter(b => b.honmons.length);
+}
+
+async function loadEpwingBook(f, book, say) {
+  const zip = await readZipLazy(f);
+  const map = new Map();
+  for (const name of [book.catalogs, ...book.honmons]) {
+    const en = zip.entry(name);
+    const mb = (en.fullSize / 1048576).toFixed(1);
+    await say(`  取り出し中: ${name.split('/').pop()}  ${mb}MB${
+      en.method !== 0 && en.fullSize > 20 * 1048576 ? '（展開に数分かかります）' : ''}`);
+    const blob = await zip.blob(name);
+    map.set(name.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b), file: blob });
+  }
+  return map;
+}
+
+function epLog(lines, done, extra) {
+  sheet(`<h2>EPWING辞書を読み込む</h2>
+    <div class="note" style="margin-top:0;white-space:pre-wrap;font-family:var(--mono);
+      font-size:calc(11.5px * var(--fs));line-height:1.9">${esc(lines.join('\n'))}</div>
+    ${extra || ''}
+    ${done ? `<div class="acts"><span class="spacer"></span>
+      <button class="btn" id="ep-close">閉じる</button></div>` : ''}`);
+  if (done && $('ep-close')) $('ep-close').onclick = closeSheet;
+}
+
 $('epFile').onchange = async (ev) => {
   const files = [...ev.target.files];
   ev.target.value = '';
   if (!files.length) return;
 
   const log = [];
-  const say = async (line) => {
-    log.push(line);
-    epLog(log, false);
-    await new Promise(r => setTimeout(r, 0));
+  const say = async (line) => { log.push(line); epLog(log, false); await new Promise(r => setTimeout(r, 0)); };
+  const fail = (msg) => {
+    log.push('', '✗ ' + msg, '', 'この画面をそのまま見せていただければ、原因を特定できます。');
+    epLog(log, true);
+    $('status').textContent = msg;
   };
 
   await say('選ばれたファイル：');
   for (const f of files) {
     await say(`  ${f.name}  ${(f.size / 1048576).toFixed(1)}MB`);
-    if (f.size === 0) {
-      await say('  ⚠ 中身がありません。iCloudからのダウンロードが終わっていない可能性があります');
-    }
+    if (f.size === 0) await say('  ⚠ 中身がありません。iCloudのダウンロードが未完了かもしれません');
   }
 
   const label = files.length === 1 ? files[0].name : (files[0].name + ' ほか');
-  try {
-    const map = new Map();
-    const keep = (name) => {
-      const base = name.split('/').pop().toLowerCase();
-      return base === 'catalogs' || base === 'catalogs.' || base.startsWith('honmon');
-    };
 
-    for (const f of files) {
-      if (/\.zip$/i.test(f.name)) {
-        await say(`zipの目録を読みます…`);
-        const zip = await readZipLazy(f);
-        await say(`  ${zip.names.length}個のファイルが入っています`);
-        const wanted = zip.names.filter(keep);
-        if (!wanted.length) {
-          await say('  ✗ CATALOGS と HONMON が見つかりません');
-          await say('    zipの中の階層が深すぎるか、別の辞書形式かもしれません');
-        }
-        for (const name of wanted) {
-          const en = zip.entry(name);
-          const mb = (en.fullSize / 1048576).toFixed(1);
-          await say(`  取り出し中: ${name}  ${mb}MB${en.method !== 0 ? '（展開に時間がかかります）' : ''}`);
-          const blob = await zip.blob(name);
-          map.set(name.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b), file: blob });
-          await say(`  ✓ ${name}`);
-        }
-      } else {
-        const rel = (f.webkitRelativePath || f.name).toLowerCase();
-        if (keep(rel)) {
-          map.set(rel, { size: f.size, slice: (a, b) => f.slice(a, b), file: f });
-          await say(`✓ ${f.name} を使います`);
-        } else {
-          await say(`  ${f.name} は使いません（CATALOGS か HONMON ではありません）`);
-        }
+  try {
+    const zipFile = files.find(f => /\.zip$/i.test(f.name));
+
+    // ---- a zip may hold several dictionaries; open one at a time ----
+    if (zipFile) {
+      await say('zipの目録を読みます…');
+      const zip = await readZipLazy(zipFile);
+      await say(`  ${zip.names.length}個のファイルが入っています`);
+      const books = groupBooks(zip.names, n => (zip.entry(n) || {}).fullSize || 0);
+      if (!books.length) return fail('CATALOGS と HONMON の組が見つかりません。');
+
+      if (books.length > 1) {
+        await say('');
+        await say(`辞書が${books.length}つ入っています。どれを開きますか。`);
+        await say('（大きな辞書は展開に時間がかかります。1つずつ開いてください）');
+        epLog(log, false, `<div class="acts" style="flex-direction:column;align-items:stretch">${
+          books.map((b, i) => `<button class="btn" data-book="${i}" style="text-align:left">${
+            esc(b.dir.replace(/\/$/, '').split('/').pop() || b.catalogs)}　${
+            (b.size / 1048576).toFixed(0)}MB</button>`).join('')}</div>`);
+        $('sheet').querySelectorAll('[data-book]').forEach(btn => btn.onclick = async () => {
+          const book = books[+btn.dataset.book];
+          log.push('', `${book.dir || '(最上位)'} を開きます`);
+          try {
+            const map = await loadEpwingBook(zipFile, book, say);
+            await finish(map, label, log, say);
+          } catch (e) { fail(e.message || String(e)); }
+        });
+        return;
       }
+
+      const map = await loadEpwingBook(zipFile, books[0], say);
+      return finish(map, label, log, say);
     }
 
+    // ---- files chosen directly ----
+    const map = new Map();
+    for (const f of files) {
+      const rel = (f.webkitRelativePath || f.name).toLowerCase();
+      const b = rel.split('/').pop();
+      if (b.startsWith('catalogs') || b.startsWith('honmon')) {
+        map.set(rel, { size: f.size, slice: (a, c) => f.slice(a, c), file: f });
+        await say(`✓ ${f.name} を使います`);
+      } else {
+        await say(`  ${f.name} は使いません（CATALOGS でも HONMON でもありません）`);
+      }
+    }
+    return finish(map, label, log, say);
+
+  } catch (e) {
+    fail(e.message || String(e));
+  }
+
+  async function finish(map, label, log, say) {
     const names = [...map.keys()];
-    await say(`使えるファイル：${names.length ? names.join(', ') : 'なし'}`);
     if (!names.some(n => n.split('/').pop().startsWith('catalogs'))) {
       throw new Error('CATALOGS がありません。辞書フォルダの一番上にあるファイルです。');
     }
     if (!names.some(n => n.split('/').pop().startsWith('honmon'))) {
       throw new Error('HONMON がありません。DATA フォルダの中にあります。');
     }
-
     await say('辞書を開いています…');
     const book = await new EpwingBook(map, label).open();
     for (const sub of book.subbooks) {
@@ -2199,24 +2278,17 @@ $('epFile').onchange = async (ev) => {
       S.dicts.push({ id: Math.random().toString(36).slice(2), name: adapter.name, dict: adapter, file: label });
       const g = curGroup();
       if (g.files && !g.files.includes(adapter.name)) g.files.push(adapter.name);
-      await say(`✓ ${sub.title}（${sub.methods.join('・') || '検索方法なし'}）`);
+      await say(`✓ ${sub.title}`);
     }
-
     const parts = {};
     for (const [k, v] of book.files) parts[k] = v.file || new Blob([await v.slice(0, v.size).arrayBuffer()]);
-    await say(await savedDicts.putEpwing(label, parts)
+    await say(await savedDicts.putEpwing(label + ':' + book.subbooks.map(s => s.title).join(','), parts)
       ? '✓ 端末に保存しました。次回から自動で開きます'
       : '△ 端末に保存できませんでした。次回また選び直してください');
-
     await saveGroups();
     renderChips(); updateStatus(); run();
     log.push('', '完了しました。');
     epLog(log, true);
-  } catch (e) {
-    log.push('', '✗ ' + (e.message || String(e)));
-    log.push('', 'この画面をそのまま見せていただければ、原因を特定できます。');
-    epLog(log, true);
-    $('status').textContent = e.message || 'EPWING辞書を開けませんでした';
   }
 };
 
@@ -2331,6 +2403,7 @@ function searchMine(query) {
   }).map(e => ({ ...e, mine: true, src: e.job || S.mineName }));
 }
 
+window.run = run;
 async function run() {
   const query = q.value.trim();
   const seq = ++S.seq;
@@ -2604,15 +2677,22 @@ async function remember(e) {
 }
 
 async function loadMine() {
-  try {
-    const raw = await store.get(KEY_DICT) || await store.get(KEY_DICT_OLD);
-    if (raw) S.mine = JSON.parse(raw).entries || [];
-  } catch (_) { S.mine = []; }
+  const fromIdb = await mineStore.load();
+  if (fromIdb) {
+    S.mine = fromIdb;
+  } else {
+    try {
+      const raw = await store.get(KEY_DICT) || await store.get(KEY_DICT_OLD);
+      if (raw) S.mine = JSON.parse(raw).entries || [];
+    } catch (_) { S.mine = []; }
+    if (S.mine.length) await mineStore.save(S.mine);   // move it across once
+  }
   S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
 }
 async function saveMine() {
+  if (await mineStore.save(S.mine)) return true;
   const ok = await store.set(KEY_DICT, JSON.stringify({ entries: S.mine, saved: Date.now() }));
-  if (!ok) toast('保存できませんでした。書き出してバックアップしてください');
+  if (!ok) toast('保存できませんでした。Excelに書き出して控えを取ってください');
   return ok;
 }
 
@@ -2913,6 +2993,92 @@ $('groupBtn').onclick = () => openGroups();
    dictionary groups
    ================================================================== */
 const XL_ROW_LIMIT = 100000;
+const TAKE_LIMIT = 200000;
+
+/** Copy a PDIC dictionary's entries into the glossary so they can be edited. */
+async function takeDictionary(entry) {
+  const dict = entry.dict;
+  if (dict.epwing) { toast('EPWING辞書からの取り込みには対応していません'); return; }
+
+  const ask = () => {
+    sheet(`<h2>${esc(entry.name)} を${esc(S.mineName)}に取り込む</h2>
+      <div class="note" style="margin-top:0">${dict.nword.toLocaleString()}語を取り込み、
+      編集できるようにします。読むだけなら取り込む必要はありません。
+      自分で作った辞書を編集し直したいときに使ってください。</div>
+      <label for="t-job">案件</label>
+      <input id="t-job" lang="ja" value="${esc(S.job || entry.name)}" placeholder="空欄なら案件なし">
+      <div class="note">取り込んだ語はこの案件に入ります。あとから案件ごと消せます。</div>
+      ${dict.nword > 20000 ? `<div class="note">語数が多いので、取り込みに数分かかり、
+        端末の保存容量もそれなりに使います。</div>` : ''}
+      <div class="acts"><button class="btn" id="t-cancel">やめる</button><span class="spacer"></span>
+      <button class="btn primary" id="t-go">取り込む</button></div>`);
+    $('t-cancel').onclick = openGroups;
+    $('t-go').onclick = () => run($('t-job').value.trim());
+  };
+
+  const run = async (job) => {
+    sheet(`<h2>取り込み中</h2>
+      <div class="note" id="t-note" style="margin-top:0">読み出しています…</div>
+      <div class="progress on" style="width:100%;margin-top:12px"><i id="t-bar"></i></div>
+      <div class="acts"><span class="spacer"></span><button class="btn" id="t-stop">中止</button></div>`);
+    let cancelled = false;
+    $('t-stop').onclick = () => { cancelled = true; };
+
+    const existing = new Map(S.mine.map(e => [e.word + '\u0000' + (e.job || ''), e]));
+    const fresh = [];
+    let added = 0, updated = 0, last = Date.now();
+
+    await dict.scan(async (entries, p) => {
+      for (const e of entries) {
+        if (!e.word) continue;
+        const key = e.word + '\u0000' + job;
+        const old = existing.get(key);
+        const rec = {
+          id: old ? old.id : (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+          word: e.word, trans: e.trans || '', example: e.example || '',
+          pron: e.pron || '', level: e.level || 0, job,
+          key: toKeyword(e.word), updated: Date.now(),
+        };
+        if (old) { Object.assign(old, rec); updated++; }
+        else { fresh.push(rec); existing.set(key, rec); added++; }
+        if (added + updated > TAKE_LIMIT) return true;
+      }
+      if (Date.now() - last > 120) {
+        last = Date.now();
+        const bar = $('t-bar'); if (bar) bar.style.width = (p * 100).toFixed(1) + '%';
+        const note = $('t-note');
+        if (note) note.textContent = `${(added + updated).toLocaleString()}語を読み出しました…`;
+        await new Promise(r => setTimeout(r, 0));
+      }
+      return cancelled;
+    });
+
+    if (cancelled && !added && !updated) { openGroups(); return; }
+
+    S.mine = S.mine.concat(fresh);
+    S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+    if (job && !S.jobs.includes(job)) S.jobs.push(job);
+    if (job) S.job = job;
+
+    const note = $('t-note');
+    if (note) note.textContent = '保存しています…';
+    await new Promise(r => setTimeout(r, 0));
+    const ok = await saveMine();
+    await savePrefs();
+    updateStatus(); run2();
+
+    sheet(`<h2>${ok ? '取り込みました' : '保存できませんでした'}</h2>
+      <div class="note">新規${added.toLocaleString()}語、上書き${updated.toLocaleString()}語。
+      ${esc(S.mineName)}は${S.mine.length.toLocaleString()}語になりました。
+      ${ok ? '' : '<br><br>容量が足りません。案件ごと消すか、Excelに書き出してから減らしてください。'}</div>
+      <div class="acts"><span class="spacer"></span>
+      <button class="btn" id="t-close">閉じる</button></div>`);
+    $('t-close').onclick = closeSheet;
+  };
+
+  const run2 = () => { if (typeof window.run === 'function') window.run(); };
+  ask();
+}
 
 /** Read a whole PDIC dictionary out into a spreadsheet. */
 async function exportDictionary(entry) {
@@ -3009,6 +3175,8 @@ async function openGroups() {
       <span class="n">${d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span>
       <button class="mv" data-xl="${esc(d.name)}" aria-label="Excelで書き出す"
         ${d.dict.epwing ? 'disabled style="opacity:.25"' : ''}>XL</button>
+      <button class="mv" data-take="${esc(d.name)}" aria-label="用語集に取り込む"
+        ${d.dict.epwing ? 'disabled style="opacity:.25"' : ''}>取</button>
       <button class="mv" data-up="${i}" ${!on || i === 0 ? 'disabled style="opacity:.25"' : ''}>↑</button>
       <button class="mv" data-down="${i}" ${!on || i >= n - 1 ? 'disabled style="opacity:.25"' : ''}>↓</button>
     </div>`;
@@ -3111,6 +3279,11 @@ async function openGroups() {
   $('sheet').querySelectorAll('[data-xl]').forEach(b => b.onclick = () => {
     const d = S.dicts.find(x => x.name === b.dataset.xl);
     if (d) exportDictionary(d);
+  });
+
+  $('sheet').querySelectorAll('[data-take]').forEach(b => b.onclick = () => {
+    const d = S.dicts.find(x => x.name === b.dataset.take);
+    if (d) takeDictionary(d);
   });
 
   $('sheet').querySelectorAll('[data-forget]').forEach(b => b.onclick = async () => {
