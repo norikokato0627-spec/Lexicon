@@ -369,7 +369,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button class="ghost" id="openEpBtn">EPWING</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
-  <input type="file" id="epFile" accept=".zip,.ZIP,*/*" multiple hidden>
+  <input type="file" id="epFile" multiple hidden>
   </div>
   <div class="searchrow">
     <div class="field">
@@ -982,6 +982,60 @@ async function readZip(buf) {
       const e = out.get(name);
       if (!e) return null;
       return e.method === 0 ? e.raw : await inflateRaw(e.raw);
+    },
+  };
+}
+
+/**
+ * Read a ZIP without loading it. Takes a source with size and slice()
+ * and pulls only the directory, then each wanted entry on demand.
+ */
+async function readZipLazy(src) {
+  const tailLen = Math.min(src.size, 66000);
+  const tail = new Uint8Array(await src.slice(src.size - tailLen, src.size).arrayBuffer());
+  const tv = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+  let e = -1;
+  for (let i = tail.length - 22; i >= 0; i--) {
+    if (tv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  }
+  if (e < 0) throw new Error('ZIP形式として読めません。');
+  const count = tv.getUint16(e + 10, true);
+  const dirSize = tv.getUint32(e + 12, true);
+  const dirAt = tv.getUint32(e + 16, true);
+  if (dirAt === 0xffffffff) throw new Error('このzipは大きすぎます（ZIP64）。フォルダの中のファイルを直接選んでください。');
+
+  const dir = new Uint8Array(await src.slice(dirAt, dirAt + dirSize).arrayBuffer());
+  const dv = new DataView(dir.buffer, dir.byteOffset, dir.byteLength);
+  const entries = new Map();
+  let p = 0;
+  for (let n = 0; n < count && p + 46 <= dir.length; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const compSize = dv.getUint32(p + 20, true);
+    const fullSize = dv.getUint32(p + 24, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const cmtLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(dir.subarray(p + 46, p + 46 + nameLen));
+    entries.set(name, { method, compSize, fullSize, local });
+    p += 46 + nameLen + extraLen + cmtLen;
+  }
+
+  return {
+    names: [...entries.keys()],
+    entry(name) { return entries.get(name) || null; },
+    /** The entry as a Blob. Stored entries cost nothing; the rest stream. */
+    async blob(name) {
+      const en = entries.get(name);
+      if (!en) return null;
+      const head = new Uint8Array(await src.slice(en.local, en.local + 30).arrayBuffer());
+      const hv = new DataView(head.buffer, head.byteOffset, head.byteLength);
+      const start = en.local + 30 + hv.getUint16(26, true) + hv.getUint16(28, true);
+      const raw = src.slice(start, start + en.compSize);
+      if (en.method === 0) return raw;
+      const stream = raw.stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      return await new Response(stream).blob();
     },
   };
 }
@@ -1807,14 +1861,17 @@ const savedDicts = {
     try {
       await idbTx('readwrite', st => st.put({ name, kind: 'epwing', parts, size: 0, added: Date.now() }));
       return true;
-    } catch (_) {
-      try {
-        const raw = {};
-        for (const k of Object.keys(parts)) raw[k] = await parts[k].arrayBuffer();
-        await idbTx('readwrite', st => st.put({ name, kind: 'epwing', raw, size: 0, added: Date.now() }));
-        return true;
-      } catch (__) { return false; }
-    }
+    } catch (_) {}
+    // Copying the bytes needs them all in memory at once, so only do it
+    // for small books; a 300MB dictionary would fail anyway.
+    const total = Object.values(parts).reduce((n, p) => n + (p.size || 0), 0);
+    if (total > 40 * 1024 * 1024) return false;
+    try {
+      const raw = {};
+      for (const k of Object.keys(parts)) raw[k] = await parts[k].arrayBuffer();
+      await idbTx('readwrite', st => st.put({ name, kind: 'epwing', raw, size: total, added: Date.now() }));
+      return true;
+    } catch (_) { return false; }
   },
   async del(name) { try { await idbTx('readwrite', st => st.delete(name)); return true; } catch (_) { return false; } },
 };
@@ -1986,27 +2043,36 @@ function makeReader(file) {
 $('openBtn').onclick = () => $('file').click();
 $('openEpBtn').onclick = () => $('epFile').click();
 
-/** Build the path -> source map an EPWING book needs. */
+/**
+ * Build the path -> source map an EPWING book needs.
+ * Files chosen directly are wrapped as they are, so a 300MB HONMON is
+ * never loaded into memory; only the parts actually read are fetched.
+ */
 async function epwingFileMap(fileList) {
   const map = new Map();
-  const add = (key, bytes) => {
-    const blob = new Blob([bytes]);
-    map.set(key.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b) });
+  const keep = (name) => {
+    const base = name.split('/').pop().toLowerCase();
+    return base === 'catalogs' || base === 'catalogs.' || base.startsWith('honmon');
   };
+
   for (const f of fileList) {
     if (/\.zip$/i.test(f.name)) {
-      const zip = await readZip(new Uint8Array(await f.arrayBuffer()));
+      const zip = await readZipLazy(f);
       for (const name of zip.names) {
-        const base = name.split('/').pop().toLowerCase();
-        if (!base) continue;
-        if (base === 'catalogs' || base === 'catalogs.' || base === 'honmon' ||
-            base === 'honmon2' || base.startsWith('honmon')) {
-          add(name, await zip.get(name));
+        if (!keep(name)) continue;
+        const en = zip.entry(name);
+        if (en && en.method !== 0 && en.fullSize > 20 * 1024 * 1024) {
+          $('status').textContent =
+            `${name.split('/').pop()} を展開中… ${(en.fullSize / 1048576).toFixed(0)}MB。しばらくかかります`;
+          await new Promise(r => setTimeout(r, 0));
         }
+        const blob = await zip.blob(name);
+        if (blob) map.set(name.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b), file: blob });
       }
     } else {
-      const rel = (f.webkitRelativePath || f.name);
-      add(rel, new Uint8Array(await f.arrayBuffer()));
+      const rel = (f.webkitRelativePath || f.name).toLowerCase();
+      if (!keep(rel)) continue;
+      map.set(rel, { size: f.size, slice: (a, b) => f.slice(a, b), file: f });
     }
   }
   return map;
@@ -2026,29 +2092,7 @@ async function addEpwing(fileList, label) {
   return book;
 }
 
-$('epFile').onchange = async (ev) => {
-  const files = [...ev.target.files];
-  ev.target.value = '';
-  if (!files.length) return;
-  const label = files.length === 1 ? files[0].name : (files[0].name + ' ほか');
-  try {
-    $('status').textContent = 'EPWING辞書を読み込み中…';
-    const book = await addEpwing(files, label);
-    const parts = {};
-    for (const [k, v] of book.files) {
-      parts[k] = new Blob([await v.slice(0, v.size).arrayBuffer()]);
-    }
-    await savedDicts.putEpwing(label, parts);
-    toast(book.subbooks.map(s => s.title).join('、') + ' を保存しました');
-  } catch (e) {
-    toast(e.message || 'EPWING辞書を開けませんでした');
-    $('status').textContent = e.message || 'EPWING辞書を開けませんでした';
-  }
-  await saveGroups();
-  renderChips(); updateStatus(); run();
-};
-
-/** Open one dictionary file and register it. Returns the dictionary or throws. */
+/** Open one PDIC dictionary file and register it. Returns the dictionary. */
 async function addDictionary(f, opts = {}) {
   const fileName = opts.name || f.name;
   $('status').textContent = `${fileName} を読み込み中…`;
@@ -2072,7 +2116,110 @@ async function addDictionary(f, opts = {}) {
   return dict;
 }
 
-/** Reopen everything kept on the device. */
+function epLog(lines, done) {
+  sheet(`<h2>EPWING辞書を読み込む</h2>
+    <div class="note" style="margin-top:0;white-space:pre-wrap;font-family:var(--mono);
+      font-size:calc(11.5px * var(--fs));line-height:1.9">${esc(lines.join('\n'))}</div>
+    ${done ? `<div class="acts"><span class="spacer"></span>
+      <button class="btn" id="ep-close">閉じる</button></div>` : ''}`);
+  if (done && $('ep-close')) $('ep-close').onclick = closeSheet;
+}
+
+$('epFile').onchange = async (ev) => {
+  const files = [...ev.target.files];
+  ev.target.value = '';
+  if (!files.length) return;
+
+  const log = [];
+  const say = async (line) => {
+    log.push(line);
+    epLog(log, false);
+    await new Promise(r => setTimeout(r, 0));
+  };
+
+  await say('選ばれたファイル：');
+  for (const f of files) {
+    await say(`  ${f.name}  ${(f.size / 1048576).toFixed(1)}MB`);
+    if (f.size === 0) {
+      await say('  ⚠ 中身がありません。iCloudからのダウンロードが終わっていない可能性があります');
+    }
+  }
+
+  const label = files.length === 1 ? files[0].name : (files[0].name + ' ほか');
+  try {
+    const map = new Map();
+    const keep = (name) => {
+      const base = name.split('/').pop().toLowerCase();
+      return base === 'catalogs' || base === 'catalogs.' || base.startsWith('honmon');
+    };
+
+    for (const f of files) {
+      if (/\.zip$/i.test(f.name)) {
+        await say(`zipの目録を読みます…`);
+        const zip = await readZipLazy(f);
+        await say(`  ${zip.names.length}個のファイルが入っています`);
+        const wanted = zip.names.filter(keep);
+        if (!wanted.length) {
+          await say('  ✗ CATALOGS と HONMON が見つかりません');
+          await say('    zipの中の階層が深すぎるか、別の辞書形式かもしれません');
+        }
+        for (const name of wanted) {
+          const en = zip.entry(name);
+          const mb = (en.fullSize / 1048576).toFixed(1);
+          await say(`  取り出し中: ${name}  ${mb}MB${en.method !== 0 ? '（展開に時間がかかります）' : ''}`);
+          const blob = await zip.blob(name);
+          map.set(name.toLowerCase(), { size: blob.size, slice: (a, b) => blob.slice(a, b), file: blob });
+          await say(`  ✓ ${name}`);
+        }
+      } else {
+        const rel = (f.webkitRelativePath || f.name).toLowerCase();
+        if (keep(rel)) {
+          map.set(rel, { size: f.size, slice: (a, b) => f.slice(a, b), file: f });
+          await say(`✓ ${f.name} を使います`);
+        } else {
+          await say(`  ${f.name} は使いません（CATALOGS か HONMON ではありません）`);
+        }
+      }
+    }
+
+    const names = [...map.keys()];
+    await say(`使えるファイル：${names.length ? names.join(', ') : 'なし'}`);
+    if (!names.some(n => n.split('/').pop().startsWith('catalogs'))) {
+      throw new Error('CATALOGS がありません。辞書フォルダの一番上にあるファイルです。');
+    }
+    if (!names.some(n => n.split('/').pop().startsWith('honmon'))) {
+      throw new Error('HONMON がありません。DATA フォルダの中にあります。');
+    }
+
+    await say('辞書を開いています…');
+    const book = await new EpwingBook(map, label).open();
+    for (const sub of book.subbooks) {
+      const adapter = new EpwingAdapter(sub);
+      S.dicts = S.dicts.filter(d => d.name !== adapter.name);
+      S.dicts.push({ id: Math.random().toString(36).slice(2), name: adapter.name, dict: adapter, file: label });
+      const g = curGroup();
+      if (g.files && !g.files.includes(adapter.name)) g.files.push(adapter.name);
+      await say(`✓ ${sub.title}（${sub.methods.join('・') || '検索方法なし'}）`);
+    }
+
+    const parts = {};
+    for (const [k, v] of book.files) parts[k] = v.file || new Blob([await v.slice(0, v.size).arrayBuffer()]);
+    await say(await savedDicts.putEpwing(label, parts)
+      ? '✓ 端末に保存しました。次回から自動で開きます'
+      : '△ 端末に保存できませんでした。次回また選び直してください');
+
+    await saveGroups();
+    renderChips(); updateStatus(); run();
+    log.push('', '完了しました。');
+    epLog(log, true);
+  } catch (e) {
+    log.push('', '✗ ' + (e.message || String(e)));
+    log.push('', 'この画面をそのまま見せていただければ、原因を特定できます。');
+    epLog(log, true);
+    $('status').textContent = e.message || 'EPWING辞書を開けませんでした';
+  }
+};
+
 async function restoreDicts() {
   const saved = await savedDicts.list();
   if (!saved.length) return;
@@ -2367,6 +2514,7 @@ function emptyState(headline) {
       <ol>
         <li>iPadの「ファイル」アプリに .dic を入れる（iCloud Driveでも可）</li>
         <li>右上の「辞書を開く」から選ぶ。複数選べば串刺し検索になります</li>
+        <li>EPWING辞書は「EPWING」から。<code>CATALOGS</code> と <code>HONMON</code> の2つを選びます</li>
         <li>一度開けば端末に保存され、次からは選び直し不要です</li>
       </ol>
       辞書がなくても、${esc(S.mineName)}だけで用語集として使えます。</div>`;
