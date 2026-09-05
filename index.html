@@ -1834,6 +1834,7 @@ const S = {
   mode: 'prefix',
   fs: 1,
   job: '',              // 案件で絞り込む。空なら全件
+  mineName: 'マイ辞書',  // 自分の用語集の呼び名
   jobs: [],             // 明示的に作った案件（語がまだ無くても残る）
   recent: [],           // 直前に引いた語
   emptyView: 'recent',  // 検索欄が空のときに何を並べるか
@@ -2141,15 +2142,15 @@ function updateStatus() {
   const parts = [];
   if (ds.length) parts.push(`${ds.length}辞書 ${words.toLocaleString()}語`);
   parts.push(S.job
-    ? `${S.job} ${mineInJob().length}語 ／ マイ辞書 ${S.mine.length}語`
-    : `マイ辞書 ${S.mine.length}語`);
+    ? `${S.job} ${mineInJob().length}語 ／ ${S.mineName} ${S.mine.length}語`
+    : `${S.mineName} ${S.mine.length}語`);
   $('status').textContent = parts.join(' ／ ');
   const gb = $('groupBtn');
   if (gb) gb.textContent = 'グループ：' + curGroup().name;
   const ab = $('askBtn');
   if (ab) ab.textContent = (EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt).name;
   const mb = $('mineBtn');
-  if (mb) mb.textContent = S.job ? '案件：' + S.job : 'マイ辞書';
+  if (mb) mb.textContent = S.job ? '案件：' + S.job : S.mineName;
 }
 
 /* ==================================================================
@@ -2180,7 +2181,7 @@ function searchMine(query) {
     if (S.mode === 'exact') return toKeyword(e.word) === k;
     if (S.mode === 'prefix') return toKeyword(e.word).startsWith(k);
     return (e.word + '\n' + e.trans + '\n' + e.example + '\n' + e.pron).toLowerCase().includes(k);
-  }).map(e => ({ ...e, mine: true, src: e.job || 'マイ辞書' }));
+  }).map(e => ({ ...e, mine: true, src: e.job || S.mineName }));
 }
 
 async function run() {
@@ -2212,10 +2213,10 @@ function renderResting() {
   if (view === 'recent') {
     S.results = S.recent.slice(0, 300);
   } else {
-    S.results = mineInJob().slice(0, 300).map(e => ({ ...e, mine: true, src: e.job || 'マイ辞書' }));
+    S.results = mineInJob().slice(0, 300).map(e => ({ ...e, mine: true, src: e.job || S.mineName }));
   }
   S.selected = null;
-  renderList(view === 'recent' ? '最近引いた語' : (S.job || 'マイ辞書'));
+  renderList(view === 'recent' ? '最近引いた語' : (S.job || S.mineName));
 }
 
 async function runFullText(query, seed, seq) {
@@ -2342,7 +2343,7 @@ function restingSwitch() {
   const on = (S.emptyView === 'job') ? 'job' : 'recent';
   return `<span class="restsw">
       <button data-v="recent"${on === 'recent' ? ' aria-pressed="true"' : ''}>最近引いた語</button>
-      <button data-v="job"${on === 'job' ? ' aria-pressed="true"' : ''}>${esc(S.job || 'マイ辞書')}</button>
+      <button data-v="job"${on === 'job' ? ' aria-pressed="true"' : ''}>${esc(S.job || S.mineName)}</button>
       <button data-v="clear" class="x" aria-label="履歴を消す">×</button>
     </span>`;
 }
@@ -2357,7 +2358,7 @@ function emptyState(headline) {
       <div class="acts">
         <button class="btn primary" id="e-ask">${esc(svc.name)}に聞く</button>
         <button class="btn" id="e-copy">質問文をコピー</button>
-        <button class="btn" id="e-add">マイ辞書に追加</button>
+        <button class="btn" id="e-add">${esc(S.mineName)}に追加</button>
       </div></div>`;
   }
   if (!S.dicts.length) {
@@ -2368,13 +2369,13 @@ function emptyState(headline) {
         <li>右上の「辞書を開く」から選ぶ。複数選べば串刺し検索になります</li>
         <li>一度開けば端末に保存され、次からは選び直し不要です</li>
       </ol>
-      辞書がなくても、マイ辞書だけで用語集として使えます。</div>`;
+      辞書がなくても、${esc(S.mineName)}だけで用語集として使えます。</div>`;
   }
   const sw = restingSwitch();
   return (sw ? `<div class="listhead">${sw}</div>` : '') +
     plate('Fig. I — 通訳用ヘッドセット') +
     `<div class="empty" style="padding-top:0"><b>${S.emptyView === 'job' && S.recent.length
-      ? (S.job ? `案件「${esc(S.job)}」にはまだ語がありません` : 'マイ辞書はまだ空です')
+      ? (S.job ? `案件「${esc(S.job)}」にはまだ語がありません` : `${esc(S.mineName)}はまだ空です`)
       : '見出し語を検索してください'}</b>
     「訳語も検索」に切り替えると、本文からも探せます。</div>`;
 }
@@ -2385,7 +2386,7 @@ function select(i) {
   if (!e) return;
   if (e.mine && e.id) {
     const live = S.mine.find(x => x.id === e.id);
-    if (live) e = { ...live, mine: true, src: live.job || 'マイ辞書' };
+    if (live) e = { ...live, mine: true, src: live.job || S.mineName };
   }
   remember(e);
   renderList();
@@ -2398,7 +2399,7 @@ function renderEntry(e, i) {
   el.innerHTML = `
     <button class="back" id="back">← 一覧</button>
     <div class="entry">
-      <h1>${esc(e.word)} ${e.mine ? '<span class="tag mine">マイ辞書</span>' : ''}</h1>
+      <h1>${esc(e.word)} ${e.mine ? '<span class="tag mine">${esc(S.mineName)}</span>' : ''}</h1>
       ${e.pron ? `<div class="pron">${esc(e.pron)}</div>` : ''}
       ${SWELL}
       <div class="trans">${esc(e.trans || '（訳語なし）')}</div>
@@ -2407,14 +2408,14 @@ function renderEntry(e, i) {
         <span class="meta">${esc(e.src)}${e.job && e.job !== e.src ? ' · ' + esc(e.job) : ''}${e.level ? ' · レベル' + e.level : ''}</span>
         ${e.mine
           ? `<button class="btn" id="edit">編集</button><button class="btn danger" id="del">削除</button>`
-          : `<button class="btn" id="copy">マイ辞書に写して編集</button>`}
+          : `<button class="btn" id="copy">${esc(S.mineName)}に写して編集</button>`}
       </div>
     </div>`;
   $('back').onclick = () => { el.classList.remove('open'); if (window.innerWidth > 860) detailPlaceholder(); };
   if (e.mine) {
     $('edit').onclick = () => openForm(e);
     $('del').onclick = async () => {
-      if (!await askConfirm(`「${e.word}」をマイ辞書から削除します。`)) return;
+      if (!await askConfirm(`「${e.word}」を${S.mineName}から削除します。`)) return;
       S.mine = S.mine.filter(x => x.id !== e.id);
       await saveMine(); toast('削除しました'); el.classList.remove('open'); updateStatus(); run();
     };
@@ -2472,7 +2473,7 @@ const DEFAULT_TPL = '「{word}」の定訳を簡潔に。訳語を最大3つ、�
 async function savePrefs() {
   await store.set(KEY_PREF, JSON.stringify({
     mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs,
-    apiKey: S.apiKey, model: S.model }));
+    apiKey: S.apiKey, model: S.model, mineName: S.mineName }));
 }
 function applyFs() {
   document.documentElement.style.setProperty('--fs-base', FS_STEPS[S.fs]);
@@ -2592,7 +2593,7 @@ async function askInline(word) {
       <div class="trans" id="ai-out"><span class="waiting">照会中…</span></div>
       <div class="foot">
         <span class="meta" id="ai-meta">${esc(S.model)}</span>
-        <button class="btn" id="ai-save" disabled style="opacity:.4">マイ辞書に追加</button>
+        <button class="btn" id="ai-save" disabled style="opacity:.4">${esc(S.mineName)}に追加</button>
         <button class="btn" id="ai-web">ChatGPTで開く</button>
       </div>
     </div>`;
@@ -3095,7 +3096,7 @@ function openMine() {
   const jobs = allJobs();
   const inJob = mineInJob();
   sheet(`
-    <h2>マイ辞書</h2>
+    <h2>${esc(S.mineName)}</h2>
     <div class="gchips">
       <button class="gchip${S.job ? '' : ' on'}" data-j="">すべて <span class="n">${S.mine.length}</span></button>
       ${jobs.map(j => `<button class="gchip${S.job === j ? ' on' : ''}" data-j="${esc(j)}">${esc(j)} <span class="n">${S.mine.filter(e => e.job === j).length}</span></button>`).join('')}
@@ -3103,9 +3104,12 @@ function openMine() {
     </div>
     ${S.job ? `<div class="acts" style="margin-top:6px">
         <button class="btn" id="j-ren">案件名を変える</button>
+        <button class="btn" id="m-ren">呼び名を変える</button>
         <span class="spacer"></span>
         ${inJob.length ? '' : '<button class="btn danger" id="j-del">この案件を削除</button>'}
-      </div>` : '<div class="note">案件ごとに用語集を分けられます。「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。案件を選んでいる間は、検索も書き出しもその案件だけが対象になります。</div>'}
+      </div>` : `<div class="acts" style="margin-top:6px">
+        <button class="btn" id="m-ren">呼び名を変える</button><span class="spacer"></span>
+      </div>` + '<div class="note">案件ごとに用語集を分けられます。「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。案件を選んでいる間は、検索も書き出しもその案件だけが対象になります。</div>'}
     <div class="note">${S.job ? `「${esc(S.job)}」${inJob.length}語。` : `全${S.mine.length}語。`}保存先は${
       store.kind === 'claude' ? 'このアプリの保存領域' :
       store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
@@ -3131,6 +3135,14 @@ function openMine() {
     await savePrefs();
     updateStatus(); run(); openMine();
   });
+
+  if ($('m-ren')) $('m-ren').onclick = async () => {
+    const name = await askName('用語集の呼び名', S.mineName, { restore: openMine });
+    if (!name || name === S.mineName) return;
+    S.mineName = name;
+    await savePrefs();
+    updateStatus(); run(); openMine();
+  };
 
   $('j-new').onclick = async () => {
     const name = await askName('新しい案件', '', { placeholder: '例：9月IR説明会', restore: openMine });
@@ -3166,7 +3178,7 @@ function openMine() {
     if (!target.length) { toast('消す語がありません'); return; }
     const n = target.length;
     const ok = await askConfirm(
-      (S.job ? `案件「${S.job}」の${n}語を消します。` : `マイ辞書の${n}語をすべて消します。`) + '元に戻せません。' +
+      (S.job ? `案件「${S.job}」の${n}語を消します。` : `${S.mineName}の${n}語をすべて消します。`) + '元に戻せません。' +
       '先に「PDIC辞書(.dic)で書き出す」か「バックアップを書き出す」で控えを取っておくことをおすすめします。',
       { okLabel: `${n}語を消す`, restore: openMine });
     if (!ok) return;
@@ -3199,7 +3211,7 @@ function openMine() {
       const blob = new Blob([bytes], { type: 'application/octet-stream' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = (S.job ? S.job.replace(/[\\/:*?"<>|]/g, '_') : 'MyLexicon') + '.dic';
+      a.download = (S.job || S.mineName).replace(/[\\/:*?"<>|]/g, '_') + '.dic';
       document.body.appendChild(a); a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
       $('x-note').innerHTML = `${target.length}語の辞書ファイルを書き出しました。` +
@@ -3217,15 +3229,15 @@ function openMine() {
     for (const e of target) {
       rows.push([e.word, e.trans || '', e.example || '', e.pron || '', e.level || 0, e.job || '']);
     }
-    const name = (S.job ? S.job.replace(/[\\/:*?"<>|]/g, '_') : 'マイ辞書') + '.xlsx';
+    const name = (S.job || S.mineName).replace(/[\\/:*?"<>|]/g, '_') + '.xlsx';
     let bytes;
-    try { bytes = buildXlsx(rows, (S.job || 'マイ辞書').slice(0, 31)); }
+    try { bytes = buildXlsx(rows, (S.job || S.mineName).slice(0, 31)); }
     catch (err) { $('x-note').textContent = '作成に失敗しました: ' + (err.message || err); return; }
     const type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     try {
       const f = new File([bytes], name, { type });
       if (navigator.canShare && navigator.canShare({ files: [f] })) {
-        await navigator.share({ files: [f], title: S.job || 'マイ辞書' });
+        await navigator.share({ files: [f], title: S.job || S.mineName });
         $('x-note').innerHTML = `${target.length}語をExcel形式で書き出しました。` +
           '見出し行がそのまま列名になるので、編集して読み込み直せます。';
         return;
@@ -3363,7 +3375,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
         job ? `この案件は${S.mine.filter(e => e.job === job).length}語になりました。` : `合計${S.mine.length}語になりました。`}<br>
       このまま「PDIC辞書(.dic)で書き出す」を押すと、PDIC形式の辞書ファイルになります。</div>
       <div class="acts"><button class="btn" id="d-close">閉じる</button><span class="spacer"></span>
-      <button class="btn primary" id="d-mine">マイ辞書へ</button></div>`);
+      <button class="btn primary" id="d-mine">${esc(S.mineName)}へ</button></div>`);
     $('d-close').onclick = closeSheet;
     $('d-mine').onclick = openMine;
   };
@@ -3479,6 +3491,7 @@ $('updateGo').onclick = () => location.reload();
     if (Array.isArray(p.jobs)) S.jobs = p.jobs.filter(x => typeof x === 'string');
     if (typeof p.apiKey === 'string') S.apiKey = p.apiKey;
     if (typeof p.model === 'string' && p.model) S.model = p.model;
+    if (typeof p.mineName === 'string' && p.mineName.trim()) S.mineName = p.mineName.trim();
   } catch (_) {}
   applyFs();
   await loadGroups();
