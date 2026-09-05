@@ -3039,15 +3039,15 @@ function openForm(e) {
   sheet(`
     <h2>${editing ? '用語を編集' : '用語を追加'}</h2>
     <label for="f-w">見出し語</label>
-    <input id="f-w" value="${esc(e.word || '')}" autocapitalize="none" autocorrect="off">
+    <input id="f-w" lang="ja" value="${esc(e.word || '')}">
     <label for="f-t">訳語</label>
-    <textarea id="f-t">${esc(e.trans || '')}</textarea>
+    <textarea id="f-t" lang="ja">${esc(e.trans || '')}</textarea>
     <label for="f-e">用例</label>
-    <textarea id="f-e" style="min-height:56px">${esc(e.example || '')}</textarea>
+    <textarea id="f-e" lang="ja" style="min-height:56px">${esc(e.example || '')}</textarea>
     <label for="f-p">発音・読み</label>
-    <input id="f-p" value="${esc(e.pron || '')}">
+    <input id="f-p" lang="ja" value="${esc(e.pron || '')}">
     <label for="f-j">案件</label>
-    <input id="f-j" value="${esc(e.job !== undefined ? e.job : S.job)}" placeholder="例：9月IR説明会">
+    <input id="f-j" lang="ja" value="${esc(e.job !== undefined ? e.job : S.job)}" placeholder="例：9月IR説明会">
     ${allJobs().length ? `<div class="gchips">${allJobs().map(j =>
       `<button class="gchip" data-job="${esc(j)}">${esc(j)}</button>`).join('')}</div>` : ''}
     <label for="f-l">レベル</label>
@@ -3061,7 +3061,12 @@ function openForm(e) {
   $('f-cancel').onclick = closeSheet;
   $('sheet').querySelectorAll('[data-job]').forEach(b =>
     b.onclick = () => { $('f-j').value = b.dataset.job; });
-  $('f-w').focus();
+  // if the headword is already filled in, start in the field being written
+  const start = (e.word || '').trim() ? $('f-t') : $('f-w');
+  start.focus();
+  if (start === $('f-t')) {
+    const v = start.value; start.value = ''; start.value = v;   // caret to the end
+  }
   $('f-save').onclick = async () => {
     const word = $('f-w').value.trim();
     if (!word) { toast('見出し語を入れてください'); $('f-w').focus(); return; }
@@ -3104,15 +3109,12 @@ function openMine() {
     <div class="note">${S.job ? `「${esc(S.job)}」${inJob.length}語。` : `全${S.mine.length}語。`}保存先は${
       store.kind === 'claude' ? 'このアプリの保存領域' :
       store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
-      大事な語は定期的に書き出してください。</div>
+      Excelで書き出せば案件ごと控えが残り、そのまま読み込み直せます。</div>
     <div class="acts">
       <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
-      <button class="btn" id="x-share">共有</button>
       <button class="btn" id="x-xl">Excelで書き出す</button>
       <button class="btn" id="x-csv">CSVで書き出す</button>
-      <button class="btn" id="x-json">バックアップを書き出す</button>
       <button class="btn" id="x-xlsx">Excelから読み込む</button>
-      <button class="btn" id="x-imp">貼り付けて読み込む</button>
     </div>
     <textarea class="out" id="x-out" readonly hidden></textarea>
     <div class="acts">
@@ -3189,29 +3191,6 @@ function openMine() {
     };
   };
 
-  $('x-share').onclick = async () => {
-    const target = mineInJob();
-    if (!target.length) { toast('渡す語がありません'); return; }
-    const name = (S.job ? S.job.replace(/[\\/:*?"<>|]/g, '_') : 'MyLexicon') + '.dic';
-    let bytes;
-    try { bytes = buildDic(target); }
-    catch (err) { $('x-note').textContent = '作成に失敗しました: ' + (err.message || err); return; }
-    try {
-      const file = new File([bytes], name, { type: 'application/octet-stream' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: S.job || 'マイ辞書' });
-        $('x-note').innerHTML = '渡した相手は、このアプリの「辞書を開く」でそのまま開けます。' +
-          'Windows版PDICの辞書グループにも追加できます。';
-        return;
-      }
-    } catch (err) {
-      if (err && err.name === 'AbortError') return;   // the person closed the share sheet
-    }
-    download2(bytes, name);
-    $('x-note').innerHTML = '共有シートが使えなかったので、ファイルとして保存しました。' +
-      'メールやAirDropで送ってください。';
-  };
-
   $('x-dic').onclick = () => {
     const target = mineInJob();
     if (!target.length) { toast('書き出す語がありません'); return; }
@@ -3225,7 +3204,7 @@ function openMine() {
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
       $('x-note').innerHTML = `${target.length}語の辞書ファイルを書き出しました。` +
         'このアプリの「辞書を開く」でそのまま開けますし、Windows版PDICの辞書グループにも追加できます。' +
-        '「ファイル」アプリに保存して、次からはこれを普通の辞書として開くのが確実です。';
+        '共有シートからAirDropやメールで、そのまま人に渡せます。';
     } catch (err) {
       $('x-note').textContent = '書き出しに失敗しました: ' + (err.message || err);
     }
@@ -3266,62 +3245,13 @@ function openMine() {
     download(csv, 'mydict.csv', 'utf16');
     show(csv, 'PDICの<code>辞書設定&lt;詳細&gt; → 辞書変換</code>でCSV形式として取り込めます。1行目の見出しは <code>word,trans,exp,level,pron</code> です。保存できないときは、上の内容をコピーしてテキストとして貼り付けてください。');
   };
-  $('x-json').onclick = () => {
-    const j = JSON.stringify({
-      version: 2,
-      entries: S.mine,
-      jobs: S.jobs,
-      job: S.job,
-      groups: S.groups,
-      activeGroup: S.activeGroup,
-      recent: S.recent,
-      prefs: { mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, model: S.model, apiKey: S.apiKey },
-      dictionaries: S.dicts.map(d => d.file || d.name),
-    }, null, 1);
-    download(j, 'lexicon-backup.json', 'utf8');
-    show(j, '用語集だけでなく、案件・グループ・履歴・設定もすべて含まれます。' +
-      'ホーム画面のアプリで「貼り付けて読み込む」に貼れば、そのまま引き継げます。' +
-      '辞書ファイルだけは容量の都合で含まれないので、あちらで開き直してください。');
-  };
   $('x-xlsx').onclick = () => $('xlsxFile').click();
 
-  $('x-imp').onclick = () => {
-    sheet(`<h2>マイ辞書を読み込む</h2>
-      <div class="note">バックアップのJSON、または <code>見出し語,訳語</code> のCSVを貼り付けてください。
-      同じ案件に同じ見出し語があれば飛ばします。JSONの場合は案件・グループ・履歴・設定も引き継ぎます。</div>
-      <textarea class="out" id="i-in" style="height:200px"></textarea>
-      <div class="acts"><button class="btn" id="i-cancel">やめる</button><span class="spacer"></span>
-      <button class="btn primary" id="i-go">追加する</button></div>`);
-    $('i-cancel').onclick = openMine;
-    $('i-go').onclick = async () => {
-      const n = importText($('i-in').value);
-      if (!n && !S.restoredDicts) { toast('読み取れませんでした'); return; }
-      await saveMine(); await savePrefs(); await saveGroups();
-      applyFs();
-      for (const m of ['prefix', 'exact', 'full'])
-        $('m-' + m).setAttribute('aria-pressed', String(m === S.mode));
-      closeSheet(); updateStatus(); run();
-      const need = (S.restoredDicts || []).filter(x => !S.dicts.some(d => d.name === x || d.file === x));
-      S.restoredDicts = null;
-      if (need.length) {
-        sheet(`<h2>引き継ぎました</h2>
-          <div class="note">${n}語と、案件・グループ・履歴・設定を読み込みました。<br><br>
-          辞書ファイルはこちらにまだありません。「辞書を開く」から、以下を選び直してください。</div>
-          ${need.map(x => `<div class="drow"><span class="nm">${esc(x)}</span></div>`).join('')}
-          <div class="acts"><button class="btn" id="r-close">あとで</button><span class="spacer"></span>
-          <button class="btn primary" id="r-open">辞書を開く</button></div>`);
-        $('r-close').onclick = closeSheet;
-        $('r-open').onclick = () => { closeSheet(); $('file').click(); };
-      } else {
-        toast(`${n}語を引き継ぎました`);
-      }
-    };
-  };
 }
 
 const FIELD_OPTS = [
   ['', '使わない'], ['word', '見出し語'], ['trans', '訳語'],
-  ['example', '用例'], ['pron', '発音・読み'], ['level', 'レベル'],
+  ['example', '用例'], ['pron', '発音・読み'], ['level', 'レベル'], ['job', '案件'],
 ];
 
 function guessField(header, i) {
@@ -3331,6 +3261,7 @@ function guessField(header, i) {
   if (/用例|例文|例|example|sample/.test(h)) return 'example';
   if (/発音|読み|よみ|pron|kana/.test(h)) return 'pron';
   if (/level|レベル|重要/.test(h)) return 'level';
+  if (/案件|分野|カテゴリ|job|project/.test(h)) return 'job';
   return i === 0 ? 'word' : i === 1 ? 'trans' : '';
 }
 
@@ -3369,8 +3300,8 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     <h2>Excelから読み込む</h2>
     <div class="note">${esc(filename)} ／ ${body.length}行。どの列が何かを指定してください。</div>
     <label for="i-job">案件名</label>
-    <input id="i-job" value="${esc(S.job || filename.replace(/\.xlsx$/i, ''))}" placeholder="例：9月IR説明会">
-    <div class="note">この名前でまとめられます。空にすると案件なしで取り込みます。</div>
+    <input id="i-job" value="${esc(S.job)}" placeholder="例：9月IR説明会">
+    <div class="note">案件の列があればそちらが優先されます。無い行はこの名前になります。</div>
     ${sheets.length > 1 ? `<div class="gchips">${sheets.map((s, i) =>
       `<button class="gchip${i === pick ? ' on' : ''}" data-sh="${i}">${esc(s.name)}</button>`).join('')}</div>` : ''}
     <div class="acts" style="margin-top:10px">
@@ -3400,8 +3331,8 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
       if (sel.value) map[sel.value] = +sel.dataset.col;
     });
     if (map.word === undefined) { toast('見出し語の列を指定してください'); return; }
-    const job = $('i-job').value.trim();
-    if (job && !S.jobs.includes(job)) S.jobs.push(job);
+    const fallbackJob = $('i-job').value.trim();
+    if (fallbackJob && !S.jobs.includes(fallbackJob)) S.jobs.push(fallbackJob);
     let added = 0, updated = 0;
     for (const r of body) {
       const word = (r[map.word] || '').trim();
@@ -3413,15 +3344,17 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
         example: map.example !== undefined ? (r[map.example] || '').trim() : '',
         pron: map.pron !== undefined ? (r[map.pron] || '').trim() : '',
         level: map.level !== undefined ? (parseInt(r[map.level], 10) || 0) : 0,
-        job,
+        job: (map.job !== undefined ? (r[map.job] || '').trim() : '') || fallbackJob,
         key: toKeyword(word),
         updated: Date.now(),
       };
-      const at = S.mine.findIndex(x => x.word === word && (x.job || '') === job);
+      if (rec.job && !S.jobs.includes(rec.job)) S.jobs.push(rec.job);
+      const at = S.mine.findIndex(x => x.word === word && (x.job || '') === rec.job);
       if (at >= 0) { rec.id = S.mine[at].id; S.mine[at] = rec; updated++; }
       else { S.mine.push(rec); added++; }
     }
     S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
+    const job = fallbackJob || (S.mine.length ? '' : '');
     if (job) S.job = job;
     await saveMine(); await savePrefs();
     updateStatus(); run();
@@ -3443,76 +3376,6 @@ function toCsv(entries) {
     rows.push([e.word, e.trans, e.example, e.level || 0, e.pron].map(csvCell).join(','));
   }
   return rows.join('\r\n') + '\r\n';
-}
-
-function importText(text) {
-  text = text.trim();
-  if (!text) return 0;
-  let added = 0;
-  if (text.startsWith('{')) {
-    try {
-      const j = JSON.parse(text);
-      const have = new Set(S.mine.map(e => e.word + '\u0000' + (e.job || '')));
-      for (const e of (j.entries || [])) {
-        if (!e.word) continue;
-        if (have.has(e.word + '\u0000' + (e.job || ''))) continue;
-        S.mine.push({ ...e, id: e.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)) });
-        added++;
-      }
-      if (j.version >= 2) {
-        if (Array.isArray(j.jobs)) S.jobs = [...new Set([...S.jobs, ...j.jobs])];
-        if (typeof j.job === 'string') S.job = j.job;
-        if (Array.isArray(j.groups) && j.groups.length) S.groups = j.groups;
-        if (j.activeGroup) S.activeGroup = j.activeGroup;
-        if (Array.isArray(j.recent)) S.recent = j.recent.slice(0, RECENT_MAX);
-        const p = j.prefs || {};
-        if (p.mode) S.mode = p.mode;
-        if (typeof p.fs === 'number') S.fs = p.fs;
-        if (p.ext) S.ext = p.ext;
-        if (p.tpl) S.tpl = p.tpl;
-        if (p.model) S.model = p.model;
-        if (p.apiKey) S.apiKey = p.apiKey;
-        S.restoredDicts = j.dictionaries || [];
-      }
-    } catch (_) { return 0; }
-  } else {
-    for (const line of text.split(/\r?\n/)) {
-      if (!line.trim()) continue;
-      const cells = parseCsvLine(line);
-      if (!cells.length || !cells[0] || cells[0] === 'word') continue;
-      S.mine.push({
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        word: cells[0], trans: cells[1] || '', example: cells[2] || '',
-        level: +cells[3] || 0, pron: cells[4] || '', job: S.job, updated: Date.now(),
-      });
-      added++;
-    }
-  }
-  S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
-  return added;
-}
-
-function parseCsvLine(line) {
-  const out = []; let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (inQ) {
-      if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
-      else cur += c;
-    } else if (c === '"') inQ = true;
-    else if (c === ',' || c === '\t') { out.push(cur); cur = ''; }
-    else cur += c;
-  }
-  out.push(cur);
-  return out;
-}
-
-function download2(bytes, filename) {
-  const blob = new Blob([bytes], { type: 'application/octet-stream' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = filename;
-  document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
 function download(text, filename, enc) {
