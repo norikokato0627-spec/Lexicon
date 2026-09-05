@@ -3103,13 +3103,16 @@ function openMine() {
       <button class="gchip" id="j-new">＋ 新しい案件</button>
     </div>
     ${S.job ? `<div class="acts" style="margin-top:6px">
-        <button class="btn" id="j-ren">案件名を変える</button>
-        <button class="btn" id="m-ren">呼び名を変える</button>
+        <button class="btn" id="j-ren">この案件の名前を変える</button>
+        <button class="btn" id="m-ren">用語集の名前を変える</button>
         <span class="spacer"></span>
         ${inJob.length ? '' : '<button class="btn danger" id="j-del">この案件を削除</button>'}
       </div>` : `<div class="acts" style="margin-top:6px">
-        <button class="btn" id="m-ren">呼び名を変える</button><span class="spacer"></span>
-      </div>` + '<div class="note">案件ごとに用語集を分けられます。「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。案件を選んでいる間は、検索も書き出しもその案件だけが対象になります。</div>'}
+        <button class="btn" id="m-ren">用語集の名前を変える</button><span class="spacer"></span>
+      </div>` + '<div class="note">用語集の中を、仕事ごとに分けられます。' +
+        '「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。' +
+        '案件を選んでいる間は、検索も書き出しもその案件の語だけが対象になります。' +
+        '「すべて」に戻せば全部を横断して引けます。</div>'}
     <div class="note">${S.job ? `「${esc(S.job)}」${inJob.length}語。` : `全${S.mine.length}語。`}保存先は${
       store.kind === 'claude' ? 'このアプリの保存領域' :
       store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
@@ -3137,7 +3140,8 @@ function openMine() {
   });
 
   if ($('m-ren')) $('m-ren').onclick = async () => {
-    const name = await askName('用語集の呼び名', S.mineName, { restore: openMine });
+    const name = await askName('用語集の名前', S.mineName,
+      { placeholder: '例：加藤用語集', restore: openMine });
     if (!name || name === S.mineName) return;
     S.mineName = name;
     await savePrefs();
