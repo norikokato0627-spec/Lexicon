@@ -1920,6 +1920,7 @@ const S = {
   fs: 1,
   job: '',              // 案件で絞り込む。空なら全件
   mineName: 'マイ辞書',  // 自分の用語集の呼び名
+  reverse: false,       // 訳語の側からも引けるようにする
   jobs: [],             // 明示的に作った案件（語がまだ無くても残る）
   recent: [],           // 直前に引いた語
   emptyView: 'recent',  // 検索欄が空のときに何を並べるか
@@ -2426,6 +2427,38 @@ for (const m of ['prefix', 'exact', 'full']) {
   };
 }
 
+/** Split a translation into the separate senses it holds. */
+function senses(trans) {
+  return String(trans || '')
+    .split(/[\n、,；;／\/]+/)
+    .map(t => t.replace(/[（(【［\[].*?[）)】］\]]/g, '').trim())
+    .filter(t => t && t.length <= 60);
+}
+
+/** Matches found by looking at the translation side. Search only; never stored. */
+function searchReverse(query) {
+  if (!S.reverse) return [];
+  const k = toKeyword(query);
+  const out = [];
+  for (const e of minePool()) {
+    if (toKeyword(e.word).startsWith(k)) continue;      // already found the normal way
+    for (const t of senses(e.trans)) {
+      const tk = toKeyword(t);
+      const hit = S.mode === 'exact' ? tk === k
+                : S.mode === 'prefix' ? tk.startsWith(k)
+                : tk.includes(k);
+      if (!hit) continue;
+      out.push({
+        id: e.id, mine: true, reverse: true,
+        word: t, trans: e.word, example: e.example || '', pron: '', level: e.level || 0,
+        job: e.job, key: tk, src: (e.job || (S.job ? '共通' : S.mineName)) + ' 逆引き',
+      });
+      break;
+    }
+  }
+  return out;
+}
+
 function searchMine(query) {
   const k = toKeyword(query);
   return minePool().filter(e => {
@@ -2444,7 +2477,7 @@ async function run() {
     renderResting();
     return;
   }
-  const out = searchMine(query);
+  const out = searchMine(query).concat(searchReverse(query));
   if (S.mode === 'full') { await runFullText(query, out, seq); return; }
   for (const d of activeDicts()) {
     const hits = await d.dict.searchHeadword(query, S.mode, 300);
@@ -2648,7 +2681,7 @@ function select(i) {
   S.selected = i;
   let e = S.results[i];
   if (!e) return;
-  if (e.mine && e.id) {
+  if (e.mine && e.id && !e.reverse) {
     const live = S.mine.find(x => x.id === e.id);
     if (live) e = { ...live, mine: true, src: live.job || (S.job ? '共通' : S.mineName) };
   }
@@ -2678,9 +2711,10 @@ function renderEntry(e, i) {
     </div>`;
   $('back').onclick = () => { el.classList.remove('open'); if (window.innerWidth > 860) detailPlaceholder(); };
   if (e.mine) {
-    $('edit').onclick = () => openForm(e);
+    $('edit').onclick = () => openForm(e.reverse ? (S.mine.find(x => x.id === e.id) || e) : e);
     $('del').onclick = async () => {
-      if (!await askConfirm(`「${e.word}」を${S.mineName}から削除します。`)) return;
+      const target = e.reverse ? (S.mine.find(x => x.id === e.id) || e) : e;
+      if (!await askConfirm(`「${target.word}」を${S.mineName}から削除します。`)) return;
       S.mine = S.mine.filter(x => x.id !== e.id);
       await saveMine(); toast('削除しました'); el.classList.remove('open');
       renderChips(); updateStatus(); run();
@@ -2756,7 +2790,7 @@ const DEFAULT_TPL = '「{word}」の定訳を簡潔に。訳語を最大3つ、�
 async function savePrefs() {
   await store.set(KEY_PREF, JSON.stringify({
     mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs,
-    apiKey: S.apiKey, model: S.model, mineName: S.mineName }));
+    apiKey: S.apiKey, model: S.model, mineName: S.mineName, reverse: S.reverse }));
 }
 function applyFs() {
   document.documentElement.style.setProperty('--fs-base', FS_STEPS[S.fs]);
@@ -3498,6 +3532,11 @@ function openMine() {
       store.kind === 'claude' ? 'このアプリの保存領域' :
       store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
       Excelで書き出せば案件ごと控えが残り、そのまま読み込み直せます。</div>
+    <div class="acts" style="margin-top:6px">
+      <button class="tick${S.reverse ? ' on' : ''}" id="m-rev"
+        style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px">${S.reverse ? '✓' : ''}</button>
+      <span style="font-size:calc(13px * var(--fs))">日本語からも引く（逆引き）</span>
+    </div>
     <div class="acts">
       <button class="btn primary" id="x-dic">PDIC辞書(.dic)で書き出す</button>
       <button class="btn" id="x-xl">Excelで書き出す</button>
@@ -3513,6 +3552,11 @@ function openMine() {
     </div>
     <div class="note" id="x-note"></div>`);
   $('x-close').onclick = closeSheet;
+  $('m-rev').onclick = async () => {
+    S.reverse = !S.reverse;
+    await savePrefs();
+    run(); openMine();
+  };
 
   $('sheet').querySelectorAll('[data-j]').forEach(b => b.onclick = async () => {
     S.job = b.dataset.j;
@@ -3699,6 +3743,12 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     <label for="i-job">案件名</label>
     <input id="i-job" value="${esc(S.job)}" placeholder="例：9月IR説明会">
     <div class="note">案件の列があればそちらが優先されます。無い行はこの名前になります。</div>
+    <div class="acts" style="margin-top:10px">
+      <button class="tick${S.reverse ? ' on' : ''}" id="i-rev"
+        style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px">${S.reverse ? '✓' : ''}</button>
+      <span style="font-size:calc(13px * var(--fs))">日本語からも引けるようにする</span>
+    </div>
+    <div class="note">訳語の側からも検索できるようになります。書き出す内容は変わりません。</div>
     ${sheets.length > 1 ? `<div class="gchips">${sheets.map((s, i) =>
       `<button class="gchip${i === pick ? ' on' : ''}" data-sh="${i}">${esc(s.name)}</button>`).join('')}</div>` : ''}
     <div class="acts" style="margin-top:10px">
@@ -3720,6 +3770,12 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
   $('sheet').querySelectorAll('[data-sh]').forEach(b =>
     b.onclick = () => openXlsxImport(sheets, filename, +b.dataset.sh, null));
   $('i-head').onclick = () => openXlsxImport(sheets, filename, pick, !header);
+  $('i-rev').onclick = async () => {
+    S.reverse = !S.reverse;
+    await savePrefs();
+    $('i-rev').classList.toggle('on', S.reverse);
+    $('i-rev').textContent = S.reverse ? '✓' : '';
+  };
   $('i-cancel').onclick = openMine;
 
   $('i-go').onclick = async () => {
@@ -3877,6 +3933,7 @@ $('updateGo').onclick = () => location.reload();
     if (typeof p.apiKey === 'string') S.apiKey = p.apiKey;
     if (typeof p.model === 'string' && p.model) S.model = p.model;
     if (typeof p.mineName === 'string' && p.mineName.trim()) S.mineName = p.mineName.trim();
+    if (typeof p.reverse === 'boolean') S.reverse = p.reverse;
   } catch (_) {}
   applyFs();
   await loadGroups();
