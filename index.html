@@ -106,6 +106,9 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
 .chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
 .mine-chip{border-color:var(--navy);color:var(--navy)}
 .mine-chip:active{background:var(--band)}
+.chip-gap{flex:1 1 auto;min-width:6px}
+.act-chip{border-style:dashed;color:var(--grey)}
+.act-chip:active{background:var(--band)}
 .chip.mine{border-color:var(--navy);color:var(--navy);border-left-width:3px}
 .chip.mine:active{background:var(--band)}
 .chip.mine{border-color:var(--navy);color:var(--navy);background:var(--paper)}
@@ -408,9 +411,6 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button id="fsUp" aria-label="文字を大きく">A</button>
   </span>
   <button id="aboutBtn" class="colophon">© Noriko Kato</button>
-  <button id="askSetBtn">調べる先</button>
-  <button id="groupBtn">グループ</button>
-  <button id="mineBtn">マイ辞書</button>
 </footer>
 
 <div class="veil" id="veil"><div class="sheet" id="sheet"></div></div>
@@ -2378,12 +2378,17 @@ function renderChips() {
   const shared = S.job ? mineShared().length : 0;
   const mine = `<button class="chip mine-chip"><b>${esc(S.job || S.mineName)}</b><span class="n">${
     mineInJob().length.toLocaleString()}${shared ? '+' + shared.toLocaleString() : ''}</span></button>`;
+  const tail = `<span class="chip-gap"></span>
+    <button class="chip act-chip" id="groupBtn">グループ：${esc(curGroup().name)}</button>
+    <button class="chip act-chip" id="askSetBtn">調べる先</button>`;
   el.innerHTML = mine + activeDicts().map(d =>
     `<span class="chip"><b>${esc(d.name)}</b><span class="n">${
        d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span></span>`
-  ).join('');
+  ).join('') + tail;
   const b = el.querySelector('.chip.mine-chip');
   if (b) b.onclick = () => openMine();
+  $('groupBtn').onclick = () => openGroups();
+  $('askSetBtn').onclick = () => openAskSettings();
 }
 
 function updateStatus() {
@@ -2395,13 +2400,8 @@ function updateStatus() {
     ? `${S.job} ${mineInJob().length}語 ＋ 共通 ${mineShared().length}語`
     : `${S.mineName} ${S.mine.length}語`);
   $('status').textContent = parts.join(' ／ ');
-  const gb = $('groupBtn');
-  if (gb) gb.textContent = 'グループ：' + curGroup().name;
   const ab = $('askBtn');
   if (ab) ab.textContent = (EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt).name;
-  const mb = $('mineBtn');
-  if (mb) mb.textContent = S.job ? '案件：' + S.job : S.mineName;
-  renderChips();
   renderChips();
 }
 
@@ -3059,7 +3059,6 @@ function openAbout() {
 }
 
 $('aboutBtn').onclick = () => openAbout();
-$('askSetBtn').onclick = () => openAskSettings();
 
 /** The word the lookup button should use: what's typed, else what's open. */
 function askTarget() {
@@ -3075,8 +3074,6 @@ $('askBtn').onclick = () => {
   lookUp(w);
 };
 $('askBtn').oncontextmenu = e => { e.preventDefault(); openAskSettings(); };
-$('mineBtn').onclick = () => openMine();
-$('groupBtn').onclick = () => openGroups();
 
 /* ==================================================================
    dictionary groups
