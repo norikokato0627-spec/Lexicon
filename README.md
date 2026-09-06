@@ -1,6 +1,9 @@
-# Tasha's Lexicon
+# Lexicon
 
-通訳・翻訳のための用語集アプリ。iPad の Safari で動きます。
+**Excelの用語集を、iPadでその場で引ける道具。**
+
+会議通訳・翻訳のために作りました。案件ごとに用語集を分けて持ち歩き、
+オフラインでも引けます。
 
 **https://norikokato0627-spec.github.io/Lexicon/**
 
@@ -14,40 +17,42 @@ Copyright (c) 2026 Noriko Kato. All rights reserved.
 複製、改変、再配布、公開、または派生物の作成に用いることを禁じます。
 **GitHub 上で閲覧できることは、これらを許諾するものではありません。**
 
-Unauthorised copying, modification, redistribution, publication or
-creation of derivative works is prohibited. Public visibility on GitHub
-does not grant any such permission. Please contact the author for permission.
+Unauthorised copying, modification, redistribution or publication is prohibited.
+Public visibility on GitHub does not grant any such permission.
 
 ---
 
+## 使い方
+
+1. 上の URL を Safari で開く
+2. 共有ボタン →「ホーム画面に追加」
+3. アイコンから起動し、「Excelから読み込む」で用語集を読み込む
+
+見出し語と訳語が並んだ Excel があれば、そのまま使えます。
+1行目が見出し行なら、列の対応は自動で判別します。
+
 ## できること
 
-- PDIC/Unicode 形式の辞書（`.dic`）をそのまま読む
-- EPWING 形式の辞書を読む（フォルダを zip にして読み込み）
-- Excel の用語集を取り込み、案件ごとに分けて持ち歩く
-- 自分の用語集を PDIC 形式の辞書として書き出す
+- Excel の用語集を読み込み、書き出す（往復できます）
+- 案件ごとに用語集を分ける。案件を選べば、検索もその案件だけに絞られます
 - 辞書に無い語を ChatGPT に送る
-- オフラインで起動し、電波の無い会場でも使える
+- オフラインで起動する。会場の電波に左右されません
+- キーボードだけで操作できる。矢印キーで結果を送り、手を止めずに次を打てます
+
+## 辞書ファイル（お持ちの方だけ）
+
+PDIC/Unicode 形式（`.dic`）と EPWING 形式の辞書を追加できます。
+自分の用語集と一緒に串刺しで引けます。無くても用語集だけで使えます。
+
+辞書データ自体はこのソフトウェアに含まれていません。
+各辞書の利用条件は、その辞書の提供元の定めに従ってください。
 
 ## データの扱い
 
-辞書ファイルも用語集も、利用者の端末の中だけに保存されます。
+用語集も辞書も、利用者の端末の中だけに保存されます。
 著作権者を含む第三者に送信されることはありません。
-サーバーに保存する仕組みはありません。
-
-辞書データそのものはこのソフトウェアに含まれていません。
-各辞書の利用条件は、その辞書の提供元の定めに従ってください。
-
-## 使い方
-
-1. 上記の URL を Safari で開く
-2. 共有ボタン →「ホーム画面に追加」
-3. アイコンから起動し、「辞書を開く」で辞書ファイルを選ぶ
-
-辞書は一度読み込めば端末に保存され、次回からは自動で開きます。
+サーバーに保存する仕組みがありません。
 
 ## 無保証
 
-本ソフトウェアは現状のまま提供され、明示または黙示を問わず、いかなる保証も行いません。
-
-This software is provided "as is", without warranty of any kind.
+本ソフトウェアは現状のまま提供され、いかなる保証も行いません。
