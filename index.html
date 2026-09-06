@@ -109,6 +109,7 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
   padding:6px 12px;white-space:nowrap;flex:0 0 auto;align-self:flex-start;margin-top:4px
 }
 .ghost:active{background:var(--band)}
+.primary-ghost{border-color:var(--navy);font-weight:600}
 
 .searchrow{display:flex;gap:8px;align-items:center;padding:8px var(--pad) 0}
 .field{flex:1 1 auto;position:relative;display:flex;align-items:center}
@@ -365,7 +366,8 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
       </span>
     </span>
     <div class="dicts" id="dicts"></div>
-    <button class="ghost" id="openBtn">辞書を開く</button>
+    <button class="ghost primary-ghost" id="openXlBtn">Excel</button>
+    <button class="ghost" id="openBtn">PDIC</button>
     <button class="ghost" id="openEpBtn">EPWING</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
@@ -2061,6 +2063,7 @@ function makeReader(file) {
   };
 }
 
+$('openXlBtn').onclick = () => $('xlsxFile').click();
 $('openBtn').onclick = () => $('file').click();
 $('openEpBtn').onclick = () => $('epFile').click();
 
@@ -2599,7 +2602,7 @@ function emptyState(headline) {
   }
   if (!activeDicts().length) {
     return `<div class="empty"><b>辞書ファイルを開くこともできます</b>
-      右上の「辞書を開く」からPDICの <code>.dic</code> を、
+      右上の「PDIC」からPDIC形式の <code>.dic</code> を、
       「EPWING」からEPWING形式の辞書を追加できます。
       一度開けば端末に保存され、次から自動で読み込まれます。</div>`;
   }
@@ -3216,7 +3219,7 @@ async function openGroups() {
         <span class="nm">${esc(n)}</span>
         <button class="mv" data-drop="${esc(n)}" aria-label="グループから外す">×</button>
       </div>`).join('') +
-      '<div class="note">「辞書を開く」でこの名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
+      '<div class="note">「PDIC」または「EPWING」でこの名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
 
     ${saved.length ? `<label>端末に保存した辞書</label>` +
       saved.map(r => `<div class="drow">
@@ -3228,7 +3231,7 @@ async function openGroups() {
       : '<div class="note">辞書を一度開くと端末に保存され、次回からは自動で読み込まれます。</div>'}
 
     <div class="acts">
-      <button class="btn primary" id="g-open">辞書を開く</button>
+      <button class="btn primary" id="g-open">PDIC辞書を開く</button>
       <span class="spacer"></span>
       <button class="btn" id="g-close">閉じる</button>
     </div>`);
@@ -3552,7 +3555,7 @@ function openMine() {
       document.body.appendChild(a); a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
       $('x-note').innerHTML = `${target.length}語の辞書ファイルを書き出しました。` +
-        'このアプリの「辞書を開く」でそのまま開けますし、Windows版PDICの辞書グループにも追加できます。' +
+        'このアプリの「PDIC」からそのまま開けますし、Windows版PDICの辞書グループにも追加できます。' +
         '共有シートからAirDropやメールで、そのまま人に渡せます。';
     } catch (err) {
       $('x-note').textContent = '書き出しに失敗しました: ' + (err.message || err);
