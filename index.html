@@ -2492,6 +2492,8 @@ function renderList(headline) {
     el.innerHTML = emptyState(headline);
     bindFallbackActions();
     bindRestingSwitch(el);
+    if ($('s-xlsx')) $('s-xlsx').onclick = () => $('xlsxFile').click();
+    if ($('s-add')) $('s-add').onclick = () => openForm({});
     return;
   }
   const rows = S.results.map((e, i) => {
@@ -2581,17 +2583,27 @@ function emptyState(headline) {
         <button class="btn" id="e-add">${esc(S.mineName)}に追加</button>
       </div></div>`;
   }
-  if (!S.dicts.length) {
-    return plate('Fig. I — 通訳用ヘッドセット') + `<div class="empty"><b>辞書を開いてください</b>
-      PDIC/Unicode形式の <code>.dic</code> ファイルをそのまま読みます。ファイルはこの端末から出ません。
-      <ol>
-        <li>iPadの「ファイル」アプリに .dic を入れる（iCloud Driveでも可）</li>
-        <li>右上の「辞書を開く」から選ぶ。複数選べば串刺し検索になります</li>
-        <li>EPWING辞書は「EPWING」から。<code>CATALOGS</code> と <code>HONMON</code> の2つを選びます</li>
-        <li>一度開けば端末に保存され、次からは選び直し不要です</li>
-      </ol>
-      辞書がなくても、${esc(S.mineName)}だけで用語集として使えます。</div>`;
+  if (!activeDicts().length && !S.mine.length) {
+    return plate('Fig. I — 通訳用ヘッドセット') +
+      `<div class="empty" style="padding-top:0">
+      <b>Excelの用語集を読み込むところから</b>
+      案件ごとの用語集をiPadに入れて、その場で引ける道具です。
+      見出し語と訳語が並んだExcelがあれば、そのまま使えます。
+      <div class="acts">
+        <button class="btn primary" id="s-xlsx">Excelから読み込む</button>
+        <button class="btn" id="s-add">手で1語ずつ入れる</button>
+      </div>
+      <div style="margin-top:22px">辞書ファイルをお持ちなら、右上から追加できます。
+      PDICの <code>.dic</code> とEPWING形式に対応しています。無くても用語集だけで使えます。</div>
+      </div>`;
   }
+  if (!activeDicts().length) {
+    return `<div class="empty"><b>辞書ファイルを開くこともできます</b>
+      右上の「辞書を開く」からPDICの <code>.dic</code> を、
+      「EPWING」からEPWING形式の辞書を追加できます。
+      一度開けば端末に保存され、次から自動で読み込まれます。</div>`;
+  }
+
   const sw = restingSwitch();
   return (sw ? `<div class="listhead">${sw}</div>` : '') +
     plate('Fig. I — 通訳用ヘッドセット') +
