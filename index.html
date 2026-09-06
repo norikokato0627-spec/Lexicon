@@ -2663,7 +2663,8 @@ function renderEntry(e, i) {
   el.innerHTML = `
     <button class="back" id="back">← 一覧</button>
     <div class="entry">
-      <h1>${esc(e.word)} ${e.mine ? '<span class="tag mine">${esc(S.mineName)}</span>' : ''}</h1>
+      <h1>${esc(e.word)} ${e.mine
+        ? `<span class="tag mine">${esc(e.job || (S.job ? '共通' : S.mineName))}</span>` : ''}</h1>
       ${e.pron ? `<div class="pron">${esc(e.pron)}</div>` : ''}
       ${SWELL}
       <div class="trans">${esc(e.trans || '（訳語なし）')}</div>
