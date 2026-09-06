@@ -97,13 +97,19 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
   .device{width:calc(24px * var(--fs))}
 }
 .dicts{display:flex;gap:6px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
-.dicts:not(:empty){margin-top:12px}
+.dicts{margin-top:12px}
 .chip{
   font-size:calc(11px * var(--fs));letter-spacing:.05em;padding:4px 9px;border:1px solid var(--rule);
   border-radius:2px;color:var(--grey);white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis
 }
 .chip b{font-weight:600}
 .chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
+.mine-chip{border-color:var(--navy);color:var(--navy)}
+.mine-chip:active{background:var(--band)}
+.chip.mine{border-color:var(--navy);color:var(--navy);border-left-width:3px}
+.chip.mine:active{background:var(--band)}
+.chip.mine{border-color:var(--navy);color:var(--navy);background:var(--paper)}
+.chip.mine:active{background:var(--band)}
 .ghost{
   font-size:calc(12.5px * var(--fs));color:var(--navy);border:1px solid var(--rule);border-radius:2px;
   padding:6px 12px;white-space:nowrap;flex:0 0 auto;align-self:flex-start;margin-top:4px
@@ -367,8 +373,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     </span>
     <div class="dicts" id="dicts"></div>
     <button class="ghost primary-ghost" id="openXlBtn">Excel</button>
-    <button class="ghost" id="openBtn">PDIC</button>
-    <button class="ghost" id="openEpBtn">EPWING</button>
+    <button class="ghost" id="openDictBtn">辞書</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
   <input type="file" id="epFile" multiple hidden>
@@ -2064,8 +2069,25 @@ function makeReader(file) {
 }
 
 $('openXlBtn').onclick = () => $('xlsxFile').click();
-$('openBtn').onclick = () => $('file').click();
-$('openEpBtn').onclick = () => $('epFile').click();
+$('openDictBtn').onclick = () => openDictPicker();
+
+/** Market dictionaries are an extra; most people never open this. */
+function openDictPicker() {
+  sheet(`<h2>辞書ファイルを追加する</h2>
+    <div class="note" style="margin-top:0">お手持ちの辞書ファイルがあれば、用語集と一緒に引けます。
+    無くても用語集だけで使えますので、心当たりがなければ閉じてください。</div>
+    <div class="acts" style="flex-direction:column;align-items:stretch;gap:10px">
+      <button class="btn" id="dp-pdic" style="text-align:left">PDIC形式（.dic）を開く</button>
+      <button class="btn" id="dp-ep" style="text-align:left">EPWING形式を開く</button>
+    </div>
+    <div class="note">EPWINGは、辞書フォルダの中の <code>CATALOGS</code> と <code>HONMON</code> を選ぶか、
+    フォルダをzipにして選んでください。</div>
+    <div class="acts"><span class="spacer"></span>
+      <button class="btn" id="dp-close">閉じる</button></div>`);
+  $('dp-pdic').onclick = () => { closeSheet(); $('file').click(); };
+  $('dp-ep').onclick = () => { closeSheet(); $('epFile').click(); };
+  $('dp-close').onclick = closeSheet;
+}
 
 /**
  * Build the path -> source map an EPWING book needs.
@@ -2352,10 +2374,15 @@ $('file').onchange = async (ev) => {
 
 function renderChips() {
   const el = $('dicts');
-  el.innerHTML = activeDicts().map(d =>
+  const shared = S.job ? mineShared().length : 0;
+  const mine = `<button class="chip mine-chip"><b>${esc(S.job || S.mineName)}</b><span class="n">${
+    mineInJob().length.toLocaleString()}${shared ? '+' + shared.toLocaleString() : ''}</span></button>`;
+  el.innerHTML = mine + activeDicts().map(d =>
     `<span class="chip"><b>${esc(d.name)}</b><span class="n">${
        d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span></span>`
   ).join('');
+  const b = el.querySelector('.chip.mine-chip');
+  if (b) b.onclick = () => openMine();
 }
 
 function updateStatus() {
@@ -2364,7 +2391,7 @@ function updateStatus() {
   const parts = [];
   if (ds.length) parts.push(`${ds.length}辞書 ${words.toLocaleString()}語`);
   parts.push(S.job
-    ? `${S.job} ${mineInJob().length}語 ／ ${S.mineName} ${S.mine.length}語`
+    ? `${S.job} ${mineInJob().length}語 ＋ 共通 ${mineShared().length}語`
     : `${S.mineName} ${S.mine.length}語`);
   $('status').textContent = parts.join(' ／ ');
   const gb = $('groupBtn');
@@ -2373,6 +2400,8 @@ function updateStatus() {
   if (ab) ab.textContent = (EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt).name;
   const mb = $('mineBtn');
   if (mb) mb.textContent = S.job ? '案件：' + S.job : S.mineName;
+  renderChips();
+  renderChips();
 }
 
 /* ==================================================================
@@ -2399,11 +2428,11 @@ for (const m of ['prefix', 'exact', 'full']) {
 
 function searchMine(query) {
   const k = toKeyword(query);
-  return mineInJob().filter(e => {
+  return minePool().filter(e => {
     if (S.mode === 'exact') return toKeyword(e.word) === k;
     if (S.mode === 'prefix') return toKeyword(e.word).startsWith(k);
     return (e.word + '\n' + e.trans + '\n' + e.example + '\n' + e.pron).toLowerCase().includes(k);
-  }).map(e => ({ ...e, mine: true, src: e.job || S.mineName }));
+  }).map(e => ({ ...e, mine: true, src: e.job || (S.job ? '共通' : S.mineName) }));
 }
 
 window.run = run;
@@ -2436,7 +2465,7 @@ function renderResting() {
   if (view === 'recent') {
     S.results = S.recent.slice(0, 300);
   } else {
-    S.results = mineInJob().slice(0, 300).map(e => ({ ...e, mine: true, src: e.job || S.mineName }));
+    S.results = minePool().slice(0, 300).map(e => ({ ...e, mine: true, src: e.job || '共通' }));
   }
   S.selected = null;
   renderList(view === 'recent' ? '最近引いた語' : (S.job || S.mineName));
@@ -2596,15 +2625,14 @@ function emptyState(headline) {
         <button class="btn primary" id="s-xlsx">Excelから読み込む</button>
         <button class="btn" id="s-add">手で1語ずつ入れる</button>
       </div>
-      <div style="margin-top:22px">辞書ファイルをお持ちなら、右上から追加できます。
-      PDICの <code>.dic</code> とEPWING形式に対応しています。無くても用語集だけで使えます。</div>
+      <div style="margin-top:22px">PDIC形式やEPWING形式の辞書をお持ちなら、
+      右上の「辞書」から追加できます。無くても用語集だけで使えます。</div>
       </div>`;
   }
   if (!activeDicts().length) {
-    return `<div class="empty"><b>辞書ファイルを開くこともできます</b>
-      右上の「PDIC」からPDIC形式の <code>.dic</code> を、
-      「EPWING」からEPWING形式の辞書を追加できます。
-      一度開けば端末に保存され、次から自動で読み込まれます。</div>`;
+    return `<div class="empty"><b>見出し語を検索してください</b>
+      「訳語も検索」にすると本文からも探せます。
+      辞書ファイルをお持ちなら、右上の「辞書」から追加できます。</div>`;
   }
 
   const sw = restingSwitch();
@@ -2622,7 +2650,7 @@ function select(i) {
   if (!e) return;
   if (e.mine && e.id) {
     const live = S.mine.find(x => x.id === e.id);
-    if (live) e = { ...live, mine: true, src: live.job || S.mineName };
+    if (live) e = { ...live, mine: true, src: live.job || (S.job ? '共通' : S.mineName) };
   }
   remember(e);
   renderList();
@@ -2653,7 +2681,8 @@ function renderEntry(e, i) {
     $('del').onclick = async () => {
       if (!await askConfirm(`「${e.word}」を${S.mineName}から削除します。`)) return;
       S.mine = S.mine.filter(x => x.id !== e.id);
-      await saveMine(); toast('削除しました'); el.classList.remove('open'); updateStatus(); run();
+      await saveMine(); toast('削除しました'); el.classList.remove('open');
+      renderChips(); updateStatus(); run();
     };
   } else {
     $('copy').onclick = () => openForm({
@@ -2670,9 +2699,19 @@ function allJobs() {
     .sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-/** The entries the current assignment filter selects. */
+/** The entries that belong to the current assignment. Used for export and deletion. */
 function mineInJob() {
   return S.job ? S.mine.filter(e => e.job === S.job) : S.mine;
+}
+
+/** What a search looks through: the assignment plus the terms kept for every job. */
+function minePool() {
+  return S.job ? S.mine.filter(e => e.job === S.job || !e.job) : S.mine;
+}
+
+/** Terms with no assignment, carried across every job. */
+function mineShared() {
+  return S.mine.filter(e => !e.job);
 }
 
 const RECENT_MAX = 60;
@@ -3080,7 +3119,7 @@ async function takeDictionary(entry) {
     await new Promise(r => setTimeout(r, 0));
     const ok = await saveMine();
     await savePrefs();
-    updateStatus(); run2();
+    renderChips(); updateStatus(); run2();
 
     sheet(`<h2>${ok ? '取り込みました' : '保存できませんでした'}</h2>
       <div class="note">新規${added.toLocaleString()}語、上書き${updated.toLocaleString()}語。
@@ -3197,8 +3236,10 @@ async function openGroups() {
     </div>`;
 
   sheet(`
-    <h2>辞書グループ</h2>
-    <div class="note">グループごとに、検索する辞書と並び順を決められます。辞書ファイルは起動のたびに選び直しますが、どのファイルを使うグループなのかは覚えています。</div>
+    <h2>辞書</h2>
+    <div class="note">PDIC形式（.dic）とEPWING形式の辞書を追加できます。
+    お持ちでなければ、用語集だけで使えます。<br><br>
+    グループごとに、検索する辞書と並び順を決められます。辞書ファイルは起動のたびに選び直しますが、どのファイルを使うグループなのかは覚えています。</div>
     <div class="gchips">${chips}</div>
     ${g.id === 'all'
       ? '<div class="note">「すべて」は開いている辞書を全部検索します。特定の辞書だけにしたいときは、新しいグループを作ってください。</div>'
@@ -3219,7 +3260,7 @@ async function openGroups() {
         <span class="nm">${esc(n)}</span>
         <button class="mv" data-drop="${esc(n)}" aria-label="グループから外す">×</button>
       </div>`).join('') +
-      '<div class="note">「PDIC」または「EPWING」でこの名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
+      '<div class="note">下のボタンから同じ名前のファイルを選ぶと、この並びに戻ります。</div>' : ''}
 
     ${saved.length ? `<label>端末に保存した辞書</label>` +
       saved.map(r => `<div class="drow">
@@ -3231,12 +3272,13 @@ async function openGroups() {
       : '<div class="note">辞書を一度開くと端末に保存され、次回からは自動で読み込まれます。</div>'}
 
     <div class="acts">
-      <button class="btn primary" id="g-open">PDIC辞書を開く</button>
+      <button class="btn" id="g-open">PDIC辞書（.dic）</button>
+      <button class="btn" id="g-openep">EPWING辞書</button>
       <span class="spacer"></span>
       <button class="btn" id="g-close">閉じる</button>
     </div>`);
 
-  const refresh = async () => { await saveGroups(); renderChips(); updateStatus(); run(); openGroups(); };
+  const refresh = async () => { await saveGroups(); renderChips(); renderChips(); updateStatus(); run(); openGroups(); };
 
   $('sheet').querySelectorAll('.gchip').forEach(b => b.onclick = async () => {
     if (b.dataset.g === '__new') {
@@ -3318,6 +3360,7 @@ async function openGroups() {
   });
 
   $('g-open').onclick = () => { closeSheet(); $('file').click(); };
+  $('g-openep').onclick = () => { closeSheet(); $('epFile').click(); };
   $('g-close').onclick = closeSheet;
 }
 
@@ -3383,7 +3426,7 @@ function openForm(e) {
     <textarea id="f-e" lang="ja" style="min-height:56px">${esc(e.example || '')}</textarea>
     <label for="f-p">発音・読み</label>
     <input id="f-p" lang="ja" value="${esc(e.pron || '')}">
-    <label for="f-j">案件</label>
+    <label for="f-j">案件（空にすると、どの案件でも引けます）</label>
     <input id="f-j" lang="ja" value="${esc(e.job !== undefined ? e.job : S.job)}" placeholder="例：9月IR説明会">
     ${allJobs().length ? `<div class="gchips">${allJobs().map(j =>
       `<button class="gchip" data-job="${esc(j)}">${esc(j)}</button>`).join('')}</div>` : ''}
@@ -3423,7 +3466,7 @@ function openForm(e) {
     else S.mine.push(rec);
     S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
     await saveMine();
-    closeSheet(); updateStatus(); toast(e.id ? '更新しました' : `「${word}」を追加しました`);
+    closeSheet(); renderChips(); updateStatus(); toast(e.id ? '更新しました' : `「${word}」を追加しました`);
     q.value = word; $('clear').hidden = false; run();
   };
 }
@@ -3447,7 +3490,8 @@ function openMine() {
         <button class="btn" id="m-ren">用語集の名前を変える</button><span class="spacer"></span>
       </div>` + '<div class="note">用語集の中を、仕事ごとに分けられます。' +
         '「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。' +
-        '案件を選んでいる間は、検索も書き出しもその案件の語だけが対象になります。' +
+        '案件を選んでいる間は、その案件の語と、案件を付けていない語の両方を検索します。' +
+        '分野の定訳など、どの案件でも使う語は案件を空にして登録してください。' +
         '「すべて」に戻せば全部を横断して引けます。</div>'}
     <div class="note">${S.job ? `「${esc(S.job)}」${inJob.length}語。` : `全${S.mine.length}語。`}保存先は${
       store.kind === 'claude' ? 'このアプリの保存領域' :
@@ -3472,7 +3516,7 @@ function openMine() {
   $('sheet').querySelectorAll('[data-j]').forEach(b => b.onclick = async () => {
     S.job = b.dataset.j;
     await savePrefs();
-    updateStatus(); run(); openMine();
+    renderChips(); updateStatus(); run(); openMine();
   });
 
   if ($('m-ren')) $('m-ren').onclick = async () => {
@@ -3481,7 +3525,7 @@ function openMine() {
     if (!name || name === S.mineName) return;
     S.mineName = name;
     await savePrefs();
-    updateStatus(); run(); openMine();
+    renderChips(); updateStatus(); run(); openMine();
   };
 
   $('j-new').onclick = async () => {
@@ -3490,7 +3534,7 @@ function openMine() {
     if (!S.jobs.includes(name)) S.jobs.push(name);
     S.job = name;
     await savePrefs();
-    updateStatus(); run(); openMine();
+    renderChips(); updateStatus(); run(); openMine();
   };
 
   if ($('j-del')) $('j-del').onclick = async () => {
@@ -3499,7 +3543,7 @@ function openMine() {
     S.jobs = S.jobs.filter(x => x !== name);
     S.job = '';
     await savePrefs();
-    updateStatus(); run(); openMine();
+    renderChips(); updateStatus(); run(); openMine();
   };
 
   if ($('j-ren')) $('j-ren').onclick = async () => {
@@ -3510,7 +3554,7 @@ function openMine() {
     if (!S.jobs.includes(name)) S.jobs.push(name);
     S.job = name;
     await saveMine(); await savePrefs();
-    updateStatus(); run(); openMine();
+    renderChips(); updateStatus(); run(); openMine();
   };
 
   $('x-clear').onclick = async () => {
@@ -3529,7 +3573,7 @@ function openMine() {
     S.mine = S.mine.filter(e => !ids.has(e.id));
     if (S.job && !S.mine.some(e => e.job === S.job)) { S.job = ''; await savePrefs(); }
     await saveMine();
-    updateStatus(); run();
+    renderChips(); updateStatus(); run();
     closeSheet();
     toast(`${n}語を削除しました`);
   };
@@ -3709,7 +3753,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     const job = fallbackJob || (S.mine.length ? '' : '');
     if (job) S.job = job;
     await saveMine(); await savePrefs();
-    updateStatus(); run();
+    renderChips(); updateStatus(); run();
     sheet(`<h2>取り込みました</h2>
       <div class="note">${job ? `案件「${esc(job)}」に` : ''}新規${added}語、上書き${updated}語。${
         job ? `この案件は${S.mine.filter(e => e.job === job).length}語になりました。` : `合計${S.mine.length}語になりました。`}<br>
