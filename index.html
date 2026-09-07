@@ -3739,7 +3739,8 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     <div class="note">${esc(filename)} ／ ${body.length}行。どの列が何かを指定してください。</div>
     <label for="i-job">案件名</label>
     <input id="i-job" value="${esc(S.job)}" placeholder="例：9月IR説明会">
-    <div class="note">案件の列があればそちらが優先されます。無い行はこの名前になります。</div>
+    <div class="note">案件の列を指定した場合はそちらに従い、空欄の行は案件なし（共通）になります。
+    列を使わない場合は、すべてこの名前で取り込みます。</div>
     <div class="acts" style="margin-top:10px">
       <button class="tick${S.reverse ? ' on' : ''}" id="i-rev"
         style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px">${S.reverse ? '✓' : ''}</button>
@@ -3784,6 +3785,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     const fallbackJob = $('i-job').value.trim();
     if (fallbackJob && !S.jobs.includes(fallbackJob)) S.jobs.push(fallbackJob);
     let added = 0, updated = 0;
+    const touched = new Map();          // where the rows actually landed
     for (const r of body) {
       const word = (r[map.word] || '').trim();
       if (!word) continue;
@@ -3794,7 +3796,8 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
         example: map.example !== undefined ? (r[map.example] || '').trim() : '',
         pron: map.pron !== undefined ? (r[map.pron] || '').trim() : '',
         level: map.level !== undefined ? (parseInt(r[map.level], 10) || 0) : 0,
-        job: (map.job !== undefined ? (r[map.job] || '').trim() : '') || fallbackJob,
+        // when the sheet has an assignment column, an empty cell means "shared"
+        job: map.job !== undefined ? (r[map.job] || '').trim() : fallbackJob,
         key: toKeyword(word),
         updated: Date.now(),
       };
@@ -3802,16 +3805,34 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
       const at = S.mine.findIndex(x => x.word === word && (x.job || '') === rec.job);
       if (at >= 0) { rec.id = S.mine[at].id; S.mine[at] = rec; updated++; }
       else { S.mine.push(rec); added++; }
+      const t = touched.get(rec.job) || { added: 0, updated: 0 };
+      t[at >= 0 ? 'updated' : 'added']++;
+      touched.set(rec.job, t);
     }
     S.mine.sort((a, b) => toKeyword(a.word) < toKeyword(b.word) ? -1 : 1);
-    const job = fallbackJob || (S.mine.length ? '' : '');
-    if (job) S.job = job;
+
+    // Land on whichever assignment received the most rows, so the screen
+    // afterwards shows what was just imported.
+    let landed = fallbackJob;
+    let most = -1;
+    for (const [j, t] of touched) {
+      const n = t.added + t.updated;
+      if (n > most) { most = n; landed = j; }
+    }
+    S.job = landed || '';
     await saveMine(); await savePrefs();
     renderChips(); updateStatus(); run();
+
+    const lines = [...touched.entries()]
+      .sort((a, b) => (b[1].added + b[1].updated) - (a[1].added + a[1].updated))
+      .map(([j, t]) => `　${j ? '案件「' + esc(j) + '」' : '案件なし'}：新規${t.added}語、上書き${t.updated}語`
+                       + `（現在${(j ? S.mine.filter(e => e.job === j) : mineShared()).length}語）`);
+
     sheet(`<h2>取り込みました</h2>
-      <div class="note">${job ? `案件「${esc(job)}」に` : ''}新規${added}語、上書き${updated}語。${
-        job ? `この案件は${S.mine.filter(e => e.job === job).length}語になりました。` : `合計${S.mine.length}語になりました。`}<br>
-      このまま「PDIC辞書(.dic)で書き出す」を押すと、PDIC形式の辞書ファイルになります。</div>
+      <div class="note">全${added + updated}語を読み込みました。${
+        touched.size > 1 ? 'Excelの案件列に従って、次のように振り分けました。' : ''}
+      <div style="margin-top:8px;line-height:2">${lines.join('<br>')}</div>
+      <div style="margin-top:10px">${esc(S.mineName)}は合計${S.mine.length}語です。</div></div>
       <div class="acts"><button class="btn" id="d-close">閉じる</button><span class="spacer"></span>
       <button class="btn primary" id="d-mine">${esc(S.mineName)}へ</button></div>`);
     $('d-close').onclick = closeSheet;
