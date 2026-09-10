@@ -3229,7 +3229,7 @@ async function exportDictionary(entry) {
   try {
     const f = new File([bytes], name, { type });
     if (navigator.canShare && navigator.canShare({ files: [f] })) {
-      await navigator.share({ files: [f], title: entry.name });
+      await navigator.share({ files: [f] });
       done('共有先に渡しました。');
       return;
     }
@@ -3663,7 +3663,7 @@ function openMine() {
     try {
       const f = new File([bytes], name, { type });
       if (navigator.canShare && navigator.canShare({ files: [f] })) {
-        await navigator.share({ files: [f], title: S.job || S.mineName });
+        await navigator.share({ files: [f] });
         $('x-note').innerHTML = `${target.length}語をExcel形式で書き出しました。` +
           '見出し行がそのまま列名になるので、編集して読み込み直せます。';
         return;
@@ -3921,6 +3921,43 @@ document.addEventListener('keydown', e => {
     q.focus();
   }
 });
+
+/* ==================================================================
+   files handed over by the iOS wrapper, when running as a native app
+   ================================================================== */
+window.receiveFile = async function (name, base64) {
+  try {
+    const bin = atob(base64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes]);
+    const file = { name, size: blob.size, slice: (a, b) => blob.slice(a, b),
+                   async arrayBuffer() { return blob.arrayBuffer(); } };
+
+    if (/\.dic$/i.test(name)) {
+      const dict = await addDictionary(file);
+      renderChips(); updateStatus(); run();
+      toast(`${dict.name} を開きました`);
+    } else if (/\.xlsx$/i.test(name)) {
+      const sheets = (await parseXlsx(new Uint8Array(await blob.arrayBuffer())))
+        .filter(x => x.rows.length);
+      if (sheets.length) openXlsxImport(sheets, name);
+    } else {
+      const map = new Map([[name.toLowerCase(),
+        { size: blob.size, slice: (a, b) => blob.slice(a, b), file: blob }]]);
+      const book = await new EpwingBook(map, name).open();
+      for (const sub of book.subbooks) {
+        const adapter = new EpwingAdapter(sub);
+        S.dicts = S.dicts.filter(d => d.name !== adapter.name);
+        S.dicts.push({ id: Math.random().toString(36).slice(2),
+                       name: adapter.name, dict: adapter, file: name });
+      }
+      renderChips(); updateStatus(); run();
+    }
+  } catch (e) {
+    toast(e.message || 'ファイルを開けませんでした');
+  }
+};
 
 /* ==================================================================
    offline
