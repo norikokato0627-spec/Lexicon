@@ -96,17 +96,19 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
   .eyebrow{font-size:calc(24px * var(--fs))}
   .device{width:calc(24px * var(--fs))}
 }
-.dicts{display:flex;gap:6px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
+.dicts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
 .dicts{margin-top:12px}
 .chip{
-  font-size:calc(11px * var(--fs));letter-spacing:.05em;padding:4px 9px;border:1px solid var(--rule);
+  display:inline-flex;align-items:baseline;gap:0;height:calc(26px * var(--fs));
+  box-sizing:border-box;padding:0 9px;
+  font-size:calc(11px * var(--fs));letter-spacing:.05em;border:1px solid var(--rule);
   border-radius:2px;color:var(--grey);white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis
 }
 .chip b{font-weight:600}
 .chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
 .mine-chip{border-color:var(--navy);color:var(--navy)}
 .mine-chip:active{background:var(--band)}
-.chip-gap{flex:1 1 auto;min-width:6px}
+.chip-gap{width:10px;flex:0 0 auto}
 .act-chip{border-style:dashed;color:var(--grey)}
 .act-chip:active{background:var(--band)}
 .chip.mine{border-color:var(--navy);color:var(--navy);border-left-width:3px}
@@ -395,7 +397,10 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button id="m-exact" aria-pressed="false">完全一致</button>
     <button id="m-full" aria-pressed="false">訳語も検索</button>
   </div>
-  <button class="scope" id="scopeBtn" hidden></button>
+  <div class="scope" id="scopeBox" role="group" aria-label="検索する範囲" hidden>
+    <button id="scopeJob">この案件だけ</button>
+    <button id="scopeAll">すべての案件</button>
+  </div>
 </header>
 
 <main>
@@ -2404,11 +2409,12 @@ function updateStatus() {
   $('status').textContent = parts.join(' ／ ');
   const ab = $('askBtn');
   if (ab) ab.textContent = (EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt).name;
-  const sc = $('scopeBtn');
-  if (sc) {
-    sc.hidden = !S.job;
-    sc.textContent = S.allJobs ? 'すべての案件を検索中' : `${S.job} だけを検索中`;
-    sc.setAttribute('aria-pressed', String(S.allJobs));
+  const box = $('scopeBox');
+  if (box) {
+    box.hidden = !S.job;
+    $('scopeJob').textContent = S.job ? `${S.job} だけ` : 'この案件だけ';
+    $('scopeJob').setAttribute('aria-pressed', String(!S.allJobs));
+    $('scopeAll').setAttribute('aria-pressed', String(S.allJobs));
   }
   renderChips();
 }
@@ -2425,12 +2431,14 @@ q.addEventListener('input', () => {
 });
 $('clear').onclick = () => { q.value = ''; $('clear').hidden = true; run(); q.focus(); };
 
-$('scopeBtn').onclick = async () => {
-  S.allJobs = !S.allJobs;
+async function setScope(all) {
+  if (S.allJobs === all) return;
+  S.allJobs = all;
   await savePrefs();
   updateStatus(); run();
-  toast(S.allJobs ? 'すべての案件から検索します' : `「${S.job}」だけから検索します`);
-};
+}
+$('scopeJob').onclick = () => setScope(false);
+$('scopeAll').onclick = () => setScope(true);
 
 for (const m of ['prefix', 'exact', 'full']) {
   $('m-' + m).onclick = () => {
