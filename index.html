@@ -150,6 +150,17 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
 .modes button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
 @media (prefers-color-scheme: dark){ .modes button[aria-pressed="true"]{color:#0E1016} }
 
+.scope{display:flex;margin:8px 0 0 var(--pad)}
+.scope[hidden]{display:none}
+.scope button{
+  font-size:calc(12px * var(--fs));padding:5px 11px;border:1px solid var(--rule);
+  border-right:none;color:var(--grey);background:var(--paper);white-space:nowrap;line-height:1.4
+}
+.scope button:first-child{border-radius:2px 0 0 2px}
+.scope button:last-child{border-right:1px solid var(--rule);border-radius:0 2px 2px 0}
+.scope button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .scope button[aria-pressed="true"]{color:#0E1016} }
+
 /* ---------- engraved plate ---------- */
 .plate-wrap{max-width:380px;margin:0 auto 26px}
 .list .plate-wrap{max-width:300px;margin:18px auto}
