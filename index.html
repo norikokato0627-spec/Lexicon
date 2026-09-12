@@ -392,6 +392,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button class="ghost" id="openDictBtn">辞書</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
+  <input type="file" id="takeFile" accept=".dic,.DIC" hidden>
   <input type="file" id="epFile" multiple hidden>
   </div>
   <div class="searchrow">
@@ -3608,24 +3609,25 @@ function openMine() {
 
   $('x-take').onclick = () => {
     const usable = S.dicts.filter(d => !d.dict.epwing);
-    if (!usable.length) {
-      sheet(`<h2>PDIC辞書から取り込む</h2>
-        <div class="note" style="margin-top:0">開いているPDIC辞書がありません。
-        右上の「辞書」から <code>.dic</code> を開いてから、もう一度お試しください。</div>
-        <div class="acts"><span class="spacer"></span>
-        <button class="btn" id="tk-back">戻る</button></div>`);
-      $('tk-back').onclick = openMine;
-      return;
-    }
-    sheet(`<h2>どの辞書から取り込みますか</h2>
-      <div class="note" style="margin-top:0">選んだ辞書の語が${esc(S.mineName)}に入り、
-      編集できるようになります。読むだけなら取り込む必要はありません。</div>
-      <div class="stack">${usable.map(d =>
-        `<button class="btn" data-tk="${esc(d.name)}">${esc(d.name)}　${
-          d.dict.nword.toLocaleString()}語</button>`).join('')}</div>
+    sheet(`<h2>PDIC辞書から取り込む</h2>
+      <div class="note" style="margin-top:0">辞書の語を${esc(S.mineName)}に入れ、
+      編集できるようにします。読むだけなら取り込む必要はありません。</div>
+
+      <label>ファイルから選ぶ</label>
+      <div class="stack">
+        <button class="btn primary" id="tk-file">.dic ファイルを選ぶ</button>
+      </div>
+      <div class="note">辞書として開いていないファイルからも取り込めます。</div>
+
+      ${usable.length ? `<label>いま開いている辞書から</label>
+        <div class="stack">${usable.map(d =>
+          `<button class="btn" data-tk="${esc(d.name)}">${esc(d.name)}　${
+            d.dict.nword.toLocaleString()}語</button>`).join('')}</div>` : ''}
+
       <div class="acts"><span class="spacer"></span>
       <button class="btn" id="tk-back">戻る</button></div>`);
     $('tk-back').onclick = openMine;
+    $('tk-file').onclick = () => $('takeFile').click();
     $('sheet').querySelectorAll('[data-tk]').forEach(b => b.onclick = () => {
       const d = S.dicts.find(x => x.name === b.dataset.tk);
       if (d) takeDictionary(d);
@@ -3789,6 +3791,25 @@ function guessField(header, i) {
 function looksLikeHeader(row) {
   return row.some(c => /見出|用語|訳|word|term|trans|meaning|例|発音|読み/i.test(c || ''));
 }
+
+/** A .dic chosen just for importing; it is not added as a reference dictionary. */
+$('takeFile').onchange = async (ev) => {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  sheet(`<h2>${esc(f.name)}</h2><div class="note" style="margin-top:0">辞書を読んでいます…</div>`);
+  try {
+    const name = f.name.replace(/\.dic$/i, '');
+    const dict = await new PdicDictionary(makeReader(f), name).open();
+    takeDictionary({ id: 'tmp', name, dict, file: f.name });
+  } catch (e) {
+    sheet(`<h2>読み込めませんでした</h2>
+      <div class="note" style="margin-top:0">${esc(e.message || String(e))}</div>
+      <div class="acts"><span class="spacer"></span>
+      <button class="btn" id="tf-back">戻る</button></div>`);
+    $('tf-back').onclick = openMine;
+  }
+};
 
 $('xlsxFile').onchange = async (ev) => {
   const f = ev.target.files[0];
