@@ -395,6 +395,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
     <button id="m-exact" aria-pressed="false">完全一致</button>
     <button id="m-full" aria-pressed="false">訳語も検索</button>
   </div>
+  <button class="scope" id="scopeBtn" hidden></button>
 </header>
 
 <main>
@@ -1921,6 +1922,7 @@ const S = {
   job: '',              // 案件で絞り込む。空なら全件
   mineName: 'マイ辞書',  // 自分の用語集の呼び名
   reverse: false,       // 訳語の側からも引けるようにする
+  allJobs: false,       // 案件を選んでいても全案件を検索する
   jobs: [],             // 明示的に作った案件（語がまだ無くても残る）
   recent: [],           // 直前に引いた語
   emptyView: 'recent',  // 検索欄が空のときに何を並べるか
@@ -2402,6 +2404,12 @@ function updateStatus() {
   $('status').textContent = parts.join(' ／ ');
   const ab = $('askBtn');
   if (ab) ab.textContent = (EXT_SERVICES[S.ext] || EXT_SERVICES.chatgpt).name;
+  const sc = $('scopeBtn');
+  if (sc) {
+    sc.hidden = !S.job;
+    sc.textContent = S.allJobs ? 'すべての案件を検索中' : `${S.job} だけを検索中`;
+    sc.setAttribute('aria-pressed', String(S.allJobs));
+  }
   renderChips();
 }
 
@@ -2416,6 +2424,13 @@ q.addEventListener('input', () => {
   timer = setTimeout(run, S.mode === 'full' ? 380 : 130);
 });
 $('clear').onclick = () => { q.value = ''; $('clear').hidden = true; run(); q.focus(); };
+
+$('scopeBtn').onclick = async () => {
+  S.allJobs = !S.allJobs;
+  await savePrefs();
+  updateStatus(); run();
+  toast(S.allJobs ? 'すべての案件から検索します' : `「${S.job}」だけから検索します`);
+};
 
 for (const m of ['prefix', 'exact', 'full']) {
   $('m-' + m).onclick = () => {
@@ -2465,7 +2480,8 @@ function searchMine(query) {
     if (S.mode === 'exact') return toKeyword(e.word) === k;
     if (S.mode === 'prefix') return toKeyword(e.word).startsWith(k);
     return (e.word + '\n' + e.trans + '\n' + e.example + '\n' + e.pron).toLowerCase().includes(k);
-  }).map(e => ({ ...e, mine: true, src: e.job || (S.job ? '共通' : S.mineName) }));
+  }).map(e => ({ ...e, mine: true,
+    src: e.job || (S.job && !S.allJobs ? '共通' : S.mineName) }));
 }
 
 window.run = run;
@@ -2739,9 +2755,10 @@ function mineInJob() {
   return S.job ? S.mine.filter(e => e.job === S.job) : S.mine;
 }
 
-/** What a search looks through: the assignment plus the terms kept for every job. */
+/** What a search looks through. */
 function minePool() {
-  return S.job ? S.mine.filter(e => e.job === S.job || !e.job) : S.mine;
+  if (!S.job || S.allJobs) return S.mine;
+  return S.mine.filter(e => e.job === S.job || !e.job);
 }
 
 /** Terms with no assignment, carried across every job. */
@@ -2790,7 +2807,7 @@ const DEFAULT_TPL = '「{word}」の定訳を簡潔に。訳語を最大3つ、�
 async function savePrefs() {
   await store.set(KEY_PREF, JSON.stringify({
     mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs,
-    apiKey: S.apiKey, model: S.model, mineName: S.mineName, reverse: S.reverse }));
+    apiKey: S.apiKey, model: S.model, mineName: S.mineName, reverse: S.reverse, allJobs: S.allJobs }));
 }
 function applyFs() {
   document.documentElement.style.setProperty('--fs-base', FS_STEPS[S.fs]);
@@ -3091,14 +3108,20 @@ async function takeDictionary(entry) {
       <div class="note" style="margin-top:0">${dict.nword.toLocaleString()}語を取り込み、
       編集できるようにします。読むだけなら取り込む必要はありません。
       自分で作った辞書を編集し直したいときに使ってください。</div>
-      <label for="t-job">案件</label>
-      <input id="t-job" lang="ja" value="${esc(S.job || entry.name)}" placeholder="空欄なら案件なし">
-      <div class="note">取り込んだ語はこの案件に入ります。あとから案件ごと消せます。</div>
+      <label for="t-job">案件名</label>
+      <input id="t-job" lang="ja" value="${esc(entry.name)}" placeholder="空欄なら案件なし（共通）">
+      ${allJobs().length ? `<div class="gchips">${allJobs().map(j =>
+        `<button class="gchip" data-usejob="${esc(j)}">${esc(j)}</button>`).join('')}
+        <button class="gchip" data-usejob="">案件なし</button></div>` : ''}
+      <div class="note">辞書名を案件名の初期値にしています。同じ名前の案件があれば、そこに合流します。
+      空欄にすると、どの案件でも引ける共通の語になります。</div>
       ${dict.nword > 20000 ? `<div class="note">語数が多いので、取り込みに数分かかり、
         端末の保存容量もそれなりに使います。</div>` : ''}
       <div class="acts"><button class="btn" id="t-cancel">やめる</button><span class="spacer"></span>
       <button class="btn primary" id="t-go">取り込む</button></div>`);
     $('t-cancel').onclick = openGroups;
+    $('sheet').querySelectorAll('[data-usejob]').forEach(b =>
+      b.onclick = () => { $('t-job').value = b.dataset.usejob; });
     $('t-go').onclick = () => run($('t-job').value.trim());
   };
 
@@ -3779,9 +3802,13 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     <h2>Excelから読み込む</h2>
     <div class="note">${esc(filename)} ／ ${body.length}行。どの列が何かを指定してください。</div>
     <label for="i-job">案件名</label>
-    <input id="i-job" value="${esc(S.job)}" placeholder="例：9月IR説明会">
-    <div class="note">案件の列を指定した場合はそちらに従い、空欄の行は案件なし（共通）になります。
-    列を使わない場合は、すべてこの名前で取り込みます。</div>
+    <input id="i-job" lang="ja" value="${esc(filename.replace(/\.[^.]+$/, ''))}" placeholder="例：9月IR説明会">
+    ${allJobs().length ? `<div class="gchips">${allJobs().map(j =>
+      `<button class="gchip" data-usejob="${esc(j)}">${esc(j)}</button>`).join('')}
+      <button class="gchip" data-usejob="">案件なし</button></div>` : ''}
+    <div class="note">ファイル名を案件名の初期値にしています。そのまま取り込めば、この名前の案件になります。
+    同じ名前の案件があれば、そこに合流します。上のボタンで既存の案件を選ぶこともできます。<br>
+    案件の列を指定した場合はそちらに従い、空欄の行は案件なし（共通）になります。</div>
     <div class="acts" style="margin-top:10px">
       <button class="tick${S.reverse ? ' on' : ''}" id="i-rev"
         style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px">${S.reverse ? '✓' : ''}</button>
@@ -3809,6 +3836,8 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
   $('sheet').querySelectorAll('[data-sh]').forEach(b =>
     b.onclick = () => openXlsxImport(sheets, filename, +b.dataset.sh, null));
   $('i-head').onclick = () => openXlsxImport(sheets, filename, pick, !header);
+  $('sheet').querySelectorAll('[data-usejob]').forEach(b =>
+    b.onclick = () => { $('i-job').value = b.dataset.usejob; });
   $('i-rev').onclick = async () => {
     S.reverse = !S.reverse;
     await savePrefs();
@@ -4030,6 +4059,7 @@ $('updateGo').onclick = () => location.reload();
     if (typeof p.model === 'string' && p.model) S.model = p.model;
     if (typeof p.mineName === 'string' && p.mineName.trim()) S.mineName = p.mineName.trim();
     if (typeof p.reverse === 'boolean') S.reverse = p.reverse;
+    if (typeof p.allJobs === 'boolean') S.allJobs = p.allJobs;
   } catch (_) {}
   applyFs();
   await loadGroups();
