@@ -3073,7 +3073,7 @@ function openAbout() {
     <h2>Tasha’s Lexicon</h2>
     <div class="note" style="margin-top:0">
       通訳・翻訳のための用語集アプリ。PDIC辞書とEPWING辞書を読み、
-      自分の用語集をExcelから取り込んで持ち歩けます。
+      自分の用語集をExcelから読み込んで持ち歩けます。
     </div>
 
     <label>著作権</label>
@@ -3141,12 +3141,12 @@ const TAKE_LIMIT = 200000;
 /** Copy a PDIC dictionary's entries into the glossary so they can be edited. */
 async function takeDictionary(entry) {
   const dict = entry.dict;
-  if (dict.epwing) { toast('EPWING辞書からの取り込みには対応していません'); return; }
+  if (dict.epwing) { toast('EPWING辞書からの読み込みには対応していません'); return; }
 
   const ask = () => {
-    sheet(`<h2>${esc(entry.name)} を${esc(S.mineName)}に取り込む</h2>
-      <div class="note" style="margin-top:0">${dict.nword.toLocaleString()}語を取り込み、
-      編集できるようにします。読むだけなら取り込む必要はありません。
+    sheet(`<h2>${esc(entry.name)} を${esc(S.mineName)}に読み込む</h2>
+      <div class="note" style="margin-top:0">${dict.nword.toLocaleString()}語を読み込み、
+      編集できるようにします。読むだけなら読み込む必要はありません。
       自分で作った辞書を編集し直したいときに使ってください。</div>
       <label for="t-job">案件名</label>
       <input id="t-job" lang="ja" value="${esc(entry.name)}" placeholder="空欄なら案件なし（共通）">
@@ -3155,10 +3155,10 @@ async function takeDictionary(entry) {
         <button class="gchip" data-usejob="">案件なし</button></div>` : ''}
       <div class="note">辞書名を案件名の初期値にしています。同じ名前の案件があれば、そこに合流します。
       空欄にすると、どの案件でも引ける共通の語になります。</div>
-      ${dict.nword > 20000 ? `<div class="note">語数が多いので、取り込みに数分かかり、
+      ${dict.nword > 20000 ? `<div class="note">語数が多いので、読み込みに数分かかり、
         端末の保存容量もそれなりに使います。</div>` : ''}
       <div class="acts"><button class="btn" id="t-cancel">やめる</button><span class="spacer"></span>
-      <button class="btn primary" id="t-go">取り込む</button></div>`);
+      <button class="btn primary" id="t-go">読み込む</button></div>`);
     $('t-cancel').onclick = openGroups;
     $('sheet').querySelectorAll('[data-usejob]').forEach(b =>
       b.onclick = () => { $('t-job').value = b.dataset.usejob; });
@@ -3166,7 +3166,7 @@ async function takeDictionary(entry) {
   };
 
   const run = async (job) => {
-    sheet(`<h2>取り込み中</h2>
+    sheet(`<h2>読み込み中</h2>
       <div class="note" id="t-note" style="margin-top:0">読み出しています…</div>
       <div class="progress on" style="width:100%;margin-top:12px"><i id="t-bar"></i></div>
       <div class="acts"><span class="spacer"></span><button class="btn" id="t-stop">中止</button></div>`);
@@ -3216,7 +3216,7 @@ async function takeDictionary(entry) {
     await savePrefs();
     renderChips(); updateStatus(); run2();
 
-    sheet(`<h2>${ok ? '取り込みました' : '保存できませんでした'}</h2>
+    sheet(`<h2>${ok ? '読み込みました' : '保存できませんでした'}</h2>
       <div class="note">新規${added.toLocaleString()}語、上書き${updated.toLocaleString()}語。
       ${esc(S.mineName)}は${S.mine.length.toLocaleString()}語になりました。
       ${ok ? '' : '<br><br>容量が足りません。案件ごと消すか、Excelに書き出してから減らしてください。'}</div>
@@ -3324,7 +3324,7 @@ async function openGroups() {
       <span class="n">${d.dict.epwing ? 'EPWING' : d.dict.nword.toLocaleString()}</span>
       <button class="mv" data-xl="${esc(d.name)}" aria-label="Excelで書き出す"
         ${d.dict.epwing ? 'disabled style="opacity:.25"' : ''}>XL</button>
-      <button class="mv" data-take="${esc(d.name)}" aria-label="用語集に取り込む"
+      <button class="mv" data-take="${esc(d.name)}" aria-label="用語集に読み込む"
         ${d.dict.epwing ? 'disabled style="opacity:.25"' : ''}>取</button>
       <button class="mv" data-up="${i}" ${!on || i === 0 ? 'disabled style="opacity:.25"' : ''}>↑</button>
       <button class="mv" data-down="${i}" ${!on || i >= n - 1 ? 'disabled style="opacity:.25"' : ''}>↓</button>
@@ -3595,7 +3595,7 @@ function openMine() {
       </div>` : `<div class="acts" style="margin-top:6px">
         <button class="btn" id="m-ren">用語集の名前を変える</button><span class="spacer"></span>
       </div>` + '<div class="note">用語集の中を、仕事ごとに分けられます。' +
-        '「＋ 新しい案件」で作るか、Excelを取り込むときに案件名を付けてください。' +
+        '「＋ 新しい案件」で作るか、Excelを読み込むときに案件名を付けてください。' +
         '案件を選んでいる間は、その案件の語と、案件を付けていない語の両方を検索します。' +
         '分野の定訳など、どの案件でも使う語は案件を空にして登録してください。' +
         '「すべて」に戻せば全部を横断して引けます。</div>'}
@@ -3612,10 +3612,10 @@ function openMine() {
     <label>読み込む</label>
     <div class="stack">
       <button class="btn primary" id="x-xlsx">Excelから読み込む</button>
-      <button class="btn" id="x-take">PDIC辞書から取り込む</button>
+      <button class="btn" id="x-take">PDIC辞書から読み込む</button>
     </div>
     <div class="note">Excelは見出し語と訳語の列があれば読めます。
-    PDIC辞書からの取り込みは、辞書の語を編集できるようにしたいときに使います。</div>
+    PDIC辞書からの読み込みは、辞書の語を編集できるようにしたいときに使います。</div>
 
     <label>書き出す</label>
     <div class="stack">
@@ -3623,7 +3623,7 @@ function openMine() {
     </div>
     <div class="pair">
       <button class="btn" id="x-csv">CSVで書き出す</button>
-      <button class="btn" id="x-dic">PDIC辞書(.dic)</button>
+      <button class="btn" id="x-dic">PDIC辞書(.dic)で書き出す</button>
     </div>
     <div class="note">日々の控えはExcelで。CSVはWindows版PDICへの取り込み用、
     .dicは辞書として配りたいときに使います。</div>
@@ -3642,15 +3642,15 @@ function openMine() {
 
   $('x-take').onclick = () => {
     const usable = S.dicts.filter(d => !d.dict.epwing);
-    sheet(`<h2>PDIC辞書から取り込む</h2>
+    sheet(`<h2>PDIC辞書から読み込む</h2>
       <div class="note" style="margin-top:0">辞書の語を${esc(S.mineName)}に入れ、
-      編集できるようにします。読むだけなら取り込む必要はありません。</div>
+      編集できるようにします。読むだけなら読み込む必要はありません。</div>
 
       <label>ファイルから選ぶ</label>
       <div class="stack">
         <button class="btn primary" id="tk-file">.dic ファイルを選ぶ</button>
       </div>
-      <div class="note">辞書として開いていないファイルからも取り込めます。</div>
+      <div class="note">辞書として開いていないファイルからも読み込めます。</div>
 
       ${usable.length ? `<label>いま開いている辞書から</label>
         <div class="stack">${usable.map(d =>
@@ -3879,7 +3879,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     ${allJobs().length ? `<div class="gchips">${allJobs().map(j =>
       `<button class="gchip" data-usejob="${esc(j)}">${esc(j)}</button>`).join('')}
       <button class="gchip" data-usejob="">案件なし</button></div>` : ''}
-    <div class="note">ファイル名を案件名の初期値にしています。そのまま取り込めば、この名前の案件になります。
+    <div class="note">ファイル名を案件名の初期値にしています。そのまま読み込めば、この名前の案件になります。
     同じ名前の案件があれば、そこに合流します。上のボタンで既存の案件を選ぶこともできます。<br>
     案件の列を指定した場合はそちらに従い、空欄の行は案件なし（共通）になります。</div>
     <div class="acts" style="margin-top:10px">
@@ -3903,7 +3903,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
     <div class="acts">
       <button class="btn" id="i-cancel">やめる</button>
       <span class="spacer"></span>
-      <button class="btn primary" id="i-go">${body.length}行を取り込む</button>
+      <button class="btn primary" id="i-go">${body.length}行を読み込む</button>
     </div>`);
 
   $('sheet').querySelectorAll('[data-sh]').forEach(b =>
@@ -3971,7 +3971,7 @@ function openXlsxImport(sheets, filename, pick = 0, hasHeader = null) {
       .map(([j, t]) => `　${j ? '案件「' + esc(j) + '」' : '案件なし'}：新規${t.added}語、上書き${t.updated}語`
                        + `（現在${(j ? S.mine.filter(e => e.job === j) : mineShared()).length}語）`);
 
-    sheet(`<h2>取り込みました</h2>
+    sheet(`<h2>読み込みました</h2>
       <div class="note">全${added + updated}語を読み込みました。${
         touched.size > 1 ? 'Excelの案件列に従って、次のように振り分けました。' : ''}
       <div style="margin-top:8px;line-height:2">${lines.join('<br>')}</div>
