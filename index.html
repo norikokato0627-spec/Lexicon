@@ -398,8 +398,7 @@ footer button{font-size:calc(12px * var(--fs));color:var(--navy)}
       </span>
     </span>
     <div class="dicts" id="dicts"></div>
-    <button class="ghost primary-ghost" id="openXlBtn">Excel</button>
-    <button class="ghost" id="openDictBtn">辞書</button>
+    <button class="ghost primary-ghost" id="openLibBtn">用語集と辞書</button>
     <input type="file" id="file" accept=".dic,.DIC" multiple hidden>
   <input type="file" id="xlsxFile" accept=".xlsx,.XLSX" hidden>
   <input type="file" id="takeFile" accept=".dic,.DIC" hidden>
@@ -2098,8 +2097,7 @@ function makeReader(file) {
   };
 }
 
-$('openXlBtn').onclick = () => $('xlsxFile').click();
-$('openDictBtn').onclick = () => openDictPicker();
+$('openLibBtn').onclick = () => openMine();
 
 /** Market dictionaries are an extra; most people never open this. */
 function openDictPicker() {
@@ -3361,8 +3359,8 @@ async function openGroups() {
       : '<div class="note">辞書を一度開くと端末に保存され、次回からは自動で読み込まれます。</div>'}
 
     <div class="acts">
-      <button class="btn" id="g-open">PDIC辞書（.dic）</button>
-      <button class="btn" id="g-openep">EPWING辞書</button>
+      <button class="btn primary" id="g-open">PDIC辞書（.dic）を開く</button>
+      <button class="btn primary" id="g-openep">EPWING辞書を開く</button>
       <span class="spacer"></span>
       <button class="btn" id="g-close">閉じる</button>
     </div>`);
