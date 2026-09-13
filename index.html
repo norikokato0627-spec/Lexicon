@@ -2660,11 +2660,8 @@ async function copyText(text) {
 
 function bindFallbackActions() {
   const word = () => q.value.trim();
-  if ($('e-ask')) $('e-ask').onclick = () => lookUp(word());
+
   if ($('e-add')) $('e-add').onclick = () => openForm({ word: word() });
-  if ($('e-copy')) $('e-copy').onclick = async () => {
-    toast(await copyText(askPrompt(word())) ? '質問文をコピーしました' : 'コピーできませんでした');
-  };
 }
 
 function bindRestingSwitch(el) {
@@ -2700,10 +2697,10 @@ function emptyState(headline) {
       <div class="empty"><b>一致する語がありません</b>
       検索方法を「訳語も検索」に変えると、本文からも探せます。
       <div class="acts">
-        <button class="btn primary" id="e-ask">${esc(svc.name)}に聞く</button>
-        <button class="btn" id="e-copy">質問文をコピー</button>
-        <button class="btn" id="e-add">${esc(S.mineName)}に追加</button>
-      </div></div>`;
+        <button class="btn primary" id="e-add">${esc(S.mineName)}に追加</button>
+      </div>
+      <div class="note" style="margin-top:12px">上の「${esc(svc.name)}」を押すと、この語を送って調べられます。</div>
+      </div>`;
   }
   if (!activeDicts().length && !S.mine.length) {
     return plate('Fig. I — 通訳用ヘッドセット') +
