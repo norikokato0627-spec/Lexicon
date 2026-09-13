@@ -96,19 +96,29 @@ header{border-bottom:1px solid var(--rule);background:var(--paper);flex:0 0 auto
   .eyebrow{font-size:calc(24px * var(--fs))}
   .device{width:calc(24px * var(--fs))}
 }
-.dicts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
+.dicts{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;order:3;flex:1 0 100%;min-width:0}
 .dicts{margin-top:12px}
 .chip{
   display:inline-flex;align-items:baseline;gap:0;height:calc(26px * var(--fs));
   box-sizing:border-box;padding:0 9px;
   font-size:calc(11px * var(--fs));letter-spacing:.05em;border:1px solid var(--rule);
-  border-radius:2px;color:var(--grey);white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis
+  border-radius:2px;color:var(--grey);white-space:nowrap;max-width:100%;overflow:visible
 }
 .chip b{font-weight:600}
 .chip .n{font-family:var(--mono);font-size:calc(10px * var(--fs));opacity:.75;margin-left:5px}
 .mine-chip{border-color:var(--navy);color:var(--navy)}
 .mine-chip:active{background:var(--band)}
 .chip-gap{width:10px;flex:0 0 auto}
+
+.libtabs{display:flex;gap:0;margin:-4px 0 14px}
+.libtabs button{
+  flex:1 1 0;font-size:calc(13px * var(--fs));padding:8px 10px;border:1px solid var(--rule);
+  border-right:none;color:var(--grey);background:var(--paper)
+}
+.libtabs button:first-child{border-radius:2px 0 0 2px}
+.libtabs button:last-child{border-right:1px solid var(--rule);border-radius:0 2px 2px 0}
+.libtabs button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+@media (prefers-color-scheme: dark){ .libtabs button[aria-pressed="true"]{color:#0E1016} }
 .act-chip{border-style:dashed;color:var(--grey)}
 .act-chip:active{background:var(--band)}
 .chip.mine{border-color:var(--navy);color:var(--navy);border-left-width:3px}
@@ -3311,6 +3321,10 @@ async function openGroups() {
     </div>`;
 
   sheet(`
+    <div class="libtabs">
+      <button id="lib-mine" aria-pressed="false">用語集</button>
+      <button id="lib-dict" aria-pressed="true">辞書</button>
+    </div>
     <h2>辞書</h2>
     <div class="note">PDIC形式（.dic）とEPWING形式の辞書を追加できます。
     お持ちでなければ、用語集だけで使えます。<br><br>
@@ -3437,6 +3451,8 @@ async function openGroups() {
   $('g-open').onclick = () => { closeSheet(); $('file').click(); };
   $('g-openep').onclick = () => { closeSheet(); $('epFile').click(); };
   $('g-close').onclick = closeSheet;
+  $('lib-mine').onclick = () => openMine();
+  $('lib-dict').onclick = () => openGroups();
 }
 
 /** Small modal that asks for a line of text. Resolves to null when cancelled. */
@@ -3550,6 +3566,10 @@ function openMine() {
   const jobs = allJobs();
   const inJob = mineInJob();
   sheet(`
+    <div class="libtabs">
+      <button id="lib-mine" aria-pressed="true">用語集</button>
+      <button id="lib-dict" aria-pressed="false">辞書</button>
+    </div>
     <h2>${esc(S.mineName)}</h2>
     <div class="gchips">
       <button class="gchip${S.job ? '' : ' on'}" data-j="">すべて <span class="n">${S.mine.length}</span></button>
@@ -3606,6 +3626,8 @@ function openMine() {
     </div>
     <div class="note" id="x-note"></div>`);
   $('x-close').onclick = closeSheet;
+  $('lib-mine').onclick = () => openMine();
+  $('lib-dict').onclick = () => openGroups();
 
   $('x-take').onclick = () => {
     const usable = S.dicts.filter(d => !d.dict.epwing);
