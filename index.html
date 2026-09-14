@@ -1966,13 +1966,14 @@ const S = {
   reverse: false,       // 訳語の側からも引けるようにする
   allJobs: false,       // 案件を選んでいても全案件を検索する
   preferApp: true,      // ChatGPTはアプリがあればアプリで開く
+  jobInfo: {},          // 案件ごとの背景。照会の質問文に差し込む
   jobs: [],             // 明示的に作った案件（語がまだ無くても残る）
   recent: [],           // 直前に引いた語
   emptyView: 'recent',  // 検索欄が空のときに何を並べるか
   ext: 'chatgpt',
   apiKey: '',
   model: 'gpt-4o-mini',
-  tpl: '「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。',
+  tpl: '{context}\n「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。',
   groups: [{ id: 'all', name: 'すべて', files: null }],
   activeGroup: 'all',
   results: [],
@@ -2841,12 +2842,12 @@ async function saveMine() {
 }
 
 const FS_STEPS = [1, 1.15, 1.3, 1.45, 1.6, 1.8];
-const DEFAULT_TPL = '「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。';
+const DEFAULT_TPL = '{context}\n「{word}」の定訳を簡潔に。訳語を最大3つ、必要なら分野を括弧で添えて。前置きと説明は不要。';
 async function savePrefs() {
   await store.set(KEY_PREF, JSON.stringify({
     mode: S.mode, fs: S.fs, ext: S.ext, tpl: S.tpl, job: S.job, jobs: S.jobs,
     apiKey: S.apiKey, model: S.model, mineName: S.mineName, reverse: S.reverse, allJobs: S.allJobs,
-    preferApp: S.preferApp }));
+    preferApp: S.preferApp, jobInfo: S.jobInfo }));
 }
 function applyFs() {
   document.documentElement.style.setProperty('--fs-base', FS_STEPS[S.fs]);
@@ -2867,10 +2868,24 @@ const EXT_SERVICES = {
              url: w => 'https://www.deepl.com/translator#ja/en/' + encodeURIComponent(w) },
 };
 
+/** The background written for the current assignment, if any. */
+function jobContext() {
+  const note = (S.jobInfo[S.job] || '').trim();
+  if (note) return note;
+  return S.job ? `今日の案件は「${S.job}」です。` : '';
+}
+
 function askPrompt(word) {
-  return (S.tpl || '').includes('{word}')
-    ? S.tpl.replace(/\{word\}/g, word)
-    : (S.tpl ? S.tpl + '\n\n' + word : word);
+  let t = S.tpl || '';
+  if (!t.includes('{word}')) t = t ? t + '\n\n{word}' : '{word}';
+  // templates written before this feature still get the background
+  if (!t.includes('{context}') && !t.includes('{job}')) t = '{context}\n' + t;
+  return t
+    .replace(/\{context\}/g, jobContext())
+    .replace(/\{job\}/g, S.job || '')
+    .replace(/\{word\}/g, word)
+    .split('\n').filter((line, i, all) => line.trim() || (i && all[i - 1].trim()))
+    .join('\n').trim();
 }
 
 function lookUp(word) {
@@ -3041,7 +3056,9 @@ function openAskSettings() {
     <div class="note" id="a-modellist">速さを優先するなら小型のモデルを。名前が違うと言われたら、ここを書き換えてください。</div>
     <label for="a-tpl">送る質問文</label>
     <textarea id="a-tpl" style="min-height:110px">${esc(S.tpl)}</textarea>
-    <div class="note"><code>{word}</code> のところに、探していた語が入ります。</div>
+    <div class="note"><code>{word}</code> のところに、探していた語が入ります。<br>
+    <code>{context}</code> は案件の背景、<code>{job}</code> は案件名に置き換わります。
+    背景は用語集の画面で案件ごとに書けます。</div>
     <div class="acts">
       <button class="btn" id="a-reset">初期値に戻す</button>
       <span class="spacer"></span>
@@ -3624,6 +3641,12 @@ function openMine() {
       store.kind === 'claude' ? 'このアプリの保存領域' :
       store.kind === 'local' ? 'この端末のブラウザ' : 'メモリのみ（閉じると消えます）'}です。
       Excelで書き出せば案件ごと控えが残り、そのまま読み込み直せます。</div>
+    ${S.job ? `<label for="m-ctx">この案件の背景（ChatGPTに毎回伝えます）</label>
+      <textarea id="m-ctx" lang="ja" style="min-height:64px"
+        placeholder="例：日米金融当局の会合。CLOと証券化商品が主題。">${esc(S.jobInfo[S.job] || '')}</textarea>
+      <div class="note">会議名や主題を書いておくと、照会の答えがその分野に寄ります。
+      空欄なら案件名だけを伝えます。</div>` : ''}
+
     <div class="acts" style="margin-top:6px">
       <button class="tick${S.reverse ? ' on' : ''}" id="m-rev"
         style="width:26px;height:26px;border:1px solid var(--rule);border-radius:2px;flex:0 0 auto">${S.reverse ? '✓' : ''}</button>
@@ -3687,6 +3710,14 @@ function openMine() {
       if (d) takeDictionary(d);
     });
   };
+
+  if ($('m-ctx')) {
+    $('m-ctx').onchange = async () => {
+      const v = $('m-ctx').value.trim();
+      if (v) S.jobInfo[S.job] = v; else delete S.jobInfo[S.job];
+      await savePrefs();
+    };
+  }
 
   $('m-rev').onclick = async () => {
     S.reverse = !S.reverse;
@@ -4155,6 +4186,7 @@ $('updateGo').onclick = () => location.reload();
     if (typeof p.reverse === 'boolean') S.reverse = p.reverse;
     if (typeof p.allJobs === 'boolean') S.allJobs = p.allJobs;
     if (typeof p.preferApp === 'boolean') S.preferApp = p.preferApp;
+    if (p.jobInfo && typeof p.jobInfo === 'object') S.jobInfo = p.jobInfo;
   } catch (_) {}
   applyFs();
   await loadGroups();
