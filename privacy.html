@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プライバシーポリシー — Lexicon for Interpreters</title>
+<style>
+body{max-width:44em;margin:0 auto;padding:40px 20px 80px;
+  font-family:"Helvetica Neue",Helvetica,"Hiragino Sans",Arial,sans-serif;
+  font-size:16px;line-height:1.9;color:#1C1E24;background:#fff}
+h1{font-family:Georgia,"Hiragino Mincho ProN",serif;font-weight:400;font-size:28px;
+  color:#1A2A52;margin:0 0 6px}
+h2{font-size:17px;color:#1A2A52;margin:36px 0 8px;border-bottom:1px solid #CFD3DA;padding-bottom:6px}
+li{margin-bottom:10px}
+.date{font-size:13px;color:#6B7280;margin-bottom:30px}
+.en{margin-top:60px;padding-top:30px;border-top:2px solid #1A2A52}
+@media (prefers-color-scheme:dark){
+  body{background:#111318;color:#E7E9ED} h1,h2{color:#8FA6DA} .date{color:#9AA1AD}
+}
+</style>
+</head>
+<body>
+
+<h1>プライバシーポリシー</h1>
+<div class="date">Lexicon for Interpreters ／ 最終更新 2026年9月19日</div>
+
+<h2>収集する情報</h2>
+<p>開発者は、利用者の個人情報を一切収集しません。氏名、メールアドレス、位置情報、
+端末識別子、利用状況の記録などを、開発者が受け取る仕組みはありません。
+解析ツールや広告も使用していません。</p>
+
+<h2>利用者が入力したデータ</h2>
+<p>用語集、案件名、案件の背景、読み込んだ辞書ファイルは、利用者の端末内に保存されます。
+開発者がこれらを閲覧、取得、複製することはできません。
+開発者が管理するサーバーは存在しません。</p>
+
+<h2>iCloudでの同期（任意）</h2>
+<p>利用者が同期を設定した場合に限り、用語集、案件名、案件の背景が、
+利用者自身のiCloud Driveに置かれた1つのファイル（利用者が選んだもの）に保存されます。
+このファイルは利用者のApple IDのiCloud上にあり、その扱いは利用者とApple社との契約に基づきます。
+開発者がこのファイルにアクセスすることはできません。
+同期はいつでもやめられます。やめてもファイルは消えないため、
+不要であれば「ファイル」アプリから削除してください。</p>
+
+<h2>外部への通信</h2>
+<p>本アプリが外部と通信するのは、次の場合に限られます。いずれも利用者の操作によるものです。</p>
+<ul>
+<li><strong>辞書に見つからない語を調べるとき。</strong>
+利用者が選んだ調べる先に、次の内容が送られます。
+<ul>
+<li><strong>ChatGPT：</strong>調べる語と、利用者が設定した質問文だけ。
+利用者が設定で「案件名と背景もChatGPTに伝える」をオンにした場合に限り、
+選んでいる案件の名前と、利用者が書いた案件の背景も添えられます。この設定は初期状態ではオフです。
+OpenAIのAPIキーを設定していれば端末からOpenAI社のAPIに直接送信され、
+設定していなければChatGPTのアプリまたはWebサイトに渡されます。</li>
+<li><strong>Google、Weblio、DeepL：</strong>調べる語だけ。</li>
+</ul>
+用語集や辞書の中身は送られません。送信された内容は、各サービスの提供者の定めに従って扱われます。</li>
+<li><strong>iCloudでの同期。</strong>上記「iCloudでの同期」のとおりです。</li>
+<li><strong>利用者が書き出したファイルを共有するとき。</strong>
+利用者が選んだ送り先（AirDrop、メール、iCloud Driveなど）に送られます。</li>
+<li><strong>Web版の更新の確認。</strong>Safariで開くWeb版に限り、
+配信元（GitHub Pages）にアプリ本体の新しい版があるかを確認します。
+利用者に関する情報は送信しません。App Store版はこの確認を行いません。</li>
+</ul>
+<p>これら以外に、本アプリが通信を行うことはありません。
+機内モードでも、辞書の検索と用語集の編集は通常どおり動作します。</p>
+
+<h2>OpenAI APIキーについて</h2>
+<p>利用者がOpenAIのAPIキーを設定した場合、キーは利用者の端末内にのみ保存されます。
+開発者に送信されることはなく、iCloudの同期ファイルにも含まれません。
+キーの利用に伴う料金は、利用者とOpenAI社との契約に基づきます。</p>
+
+<h2>辞書データについて</h2>
+<p>本アプリには辞書データが含まれていません。利用者がご自身で用意した辞書ファイルを
+読み込んで使用します。各辞書の利用条件は、その辞書の提供元の定めに従ってください。</p>
+
+<h2>データの削除</h2>
+<p>アプリを削除すると、端末内に保存されたデータはすべて削除されます。
+アプリ内の「すべて消す」からも用語集を削除できます。
+iCloudで同期している場合、iCloud Driveの同期ファイルはアプリを削除しても残ります。
+「ファイル」アプリから削除してください。
+開発者側に保管されているデータはないため、開発者への削除の請求は必要ありません。</p>
+
+<h2>お問い合わせ</h2>
+<p>本ポリシーに関するお問い合わせは、GitHub上のリポジトリ
+（https://github.com/norikokato0627-spec/Lexicon）よりご連絡ください。</p>
+
+<div class="en">
+<h1>Privacy Policy</h1>
+<div class="date">Lexicon for Interpreters — last updated 19 September 2026</div>
+
+<h2>Information we collect</h2>
+<p>The developer collects no personal information whatsoever. There is no mechanism by
+which the developer receives names, email addresses, location, device identifiers or
+usage data. The app contains no analytics and no advertising.</p>
+
+<h2>Data you enter</h2>
+<p>Your glossary, assignment names, assignment backgrounds and any dictionary files you
+open are stored on your device. The developer cannot read, retrieve or copy them.
+The developer runs no server.</p>
+
+<h2>iCloud sync (optional)</h2>
+<p>Only if you turn on sync, your glossary, assignment names and assignment backgrounds
+are saved to a single file you choose in your own iCloud Drive. That file lives in the
+iCloud account of your Apple ID and is governed by your agreement with Apple. The
+developer has no access to it. You can stop syncing at any time; the file is not deleted
+when you do, so remove it in the Files app if you no longer need it.</p>
+
+<h2>Network use</h2>
+<p>The app contacts the network only in the following cases, each started by you:</p>
+<ul>
+<li><strong>Looking up a term not found in your dictionaries.</strong>
+The service you chose receives:
+<ul>
+<li><strong>ChatGPT:</strong> the term and the prompt you configured, nothing else.
+Only if you turn on “Also tell ChatGPT the assignment name and background” in the
+settings are the selected assignment's name and the background you wrote for it added.
+That setting is off by default. With an OpenAI
+API key set, this goes directly from your device to the OpenAI API; without one, it is
+handed to the ChatGPT app or website.</li>
+<li><strong>Google, Weblio, DeepL:</strong> the term only.</li>
+</ul>
+Nothing from your glossary or dictionaries is sent. What is sent is handled under each
+provider's own terms.</li>
+<li><strong>iCloud sync</strong>, as described above.</li>
+<li><strong>Sharing a file you exported</strong>, to the destination you choose
+(AirDrop, Mail, iCloud Drive and so on).</li>
+<li><strong>Update check in the web version.</strong> Only the version opened in Safari
+checks its host (GitHub Pages) for a newer version of itself. No information about you
+is sent. The App Store version does not perform this check.</li>
+</ul>
+<p>The app performs no other network activity. Dictionary search and glossary editing
+work normally in airplane mode.</p>
+
+<h2>OpenAI API key</h2>
+<p>If you supply an OpenAI API key, it is stored only on your device. It is never sent to
+the developer and is not included in the iCloud sync file. Any charges arising from its
+use are governed by your agreement with OpenAI.</p>
+
+<h2>Dictionary data</h2>
+<p>No dictionary data is bundled with this app. You supply your own dictionary files.
+Please observe the licence terms of each dictionary you use.</p>
+
+<h2>Deleting your data</h2>
+<p>Removing the app deletes everything it stored on your device. You can also clear your
+glossary from within the app. If you use iCloud sync, the sync file in iCloud Drive
+remains after the app is removed; delete it in the Files app. As the developer holds no
+data, there is no need to ask the developer for deletion.</p>
+
+<h2>Contact</h2>
+<p>Please raise any question about this policy through the repository at
+https://github.com/norikokato0627-spec/Lexicon</p>
+</div>
+
+</body>
+</html>
