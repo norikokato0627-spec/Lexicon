@@ -1,70 +1,40 @@
-# Lexicon
+# Lexicon for Interpreters
 
-**Excelの用語集を、iPadでその場で引ける道具。**
+**通訳者のための用語集アプリ（iPad・iPhone）**
+A glossary app for interpreters, for iPad and iPhone.
 
-会議通訳・翻訳のために作りました。案件ごとに用語集を分けて持ち歩き、
-オフラインでも引けます。
+案件ごとの用語集をExcelやNumbersから読み込み、その場で引けます。PDIC・EPWING辞書にも対応し、iCloud Driveを通じて複数の端末で同期できます。言語の組み合わせは問いません。
 
-**https://norikokato0627-spec.github.io/Lexicon/**
+Import each assignment's glossary from Excel or Numbers and look terms up on the spot. It also reads PDIC and EPWING dictionaries, syncs across your devices through iCloud Drive, and works with any language pair.
 
 ---
 
-## 著作権
+## 入手方法 / How to get it
+
+現在はTestFlightによるテスト配布中です。参加をご希望の方は、作者までご連絡ください。
+
+The app is currently in testing through TestFlight. Please contact the author if you would like to take part.
+
+## お問い合わせ / Support
+
+ご質問や不具合のご報告は、このリポジトリの **Issues** からお寄せください。TestFlightをお使いの方は、アプリのスクリーンショットから直接フィードバックを送ることもできます。
+
+For questions or problem reports, please open an **Issue** in this repository. TestFlight testers can also send feedback directly from a screenshot of the app.
+
+## プライバシー / Privacy
+
+[プライバシーポリシー / Privacy policy](https://norikokato0627-spec.github.io/Lexicon/privacy.html)
+
+用語集と辞書は、お使いの端末と、ご自身のiCloud Driveにのみ保存されます。作者がこれらを受け取ることはありません。
+
+Your glossary and dictionaries stay on your device and in your own iCloud Drive. The author never receives them.
+
+---
+
+## 著作権 / Copyright
 
 Copyright (c) 2026 Noriko Kato. All rights reserved.
 
-本ソフトウェアの著作権は著作権者に帰属します。著作権者の書面による事前の許可なく、
-複製、改変、再配布、公開、または派生物の作成に用いることを禁じます。
-**GitHub 上で閲覧できることは、これらを許諾するものではありません。**
+本ソフトウェアの著作権は著作権者に帰属します。著作権者の書面による事前の許可なく、複製、改変、再配布、公開、または派生物の作成に用いることを禁じます。**GitHub 上で閲覧できることは、これらを許諾するものではありません。**
 
-Unauthorised copying, modification, redistribution or publication is prohibited.
-Public visibility on GitHub does not grant any such permission.
-
----
-
-## 使い方
-
-1. 上の URL を Safari で開く
-2. 共有ボタン →「ホーム画面に追加」
-3. アイコンから起動し、「Excelから読み込む」で用語集を読み込む
-
-見出し語と訳語が並んだ Excel があれば、そのまま使えます。
-1行目が見出し行なら、列の対応は自動で判別します。
-
-## できること
-
-- Excel の用語集を読み込み、書き出す（往復できます）
-- 案件ごとに用語集を分ける。案件を選べば、検索もその案件だけに絞られます
-- 辞書に無い語を ChatGPT に送る
-- オフラインで起動する。会場の電波に左右されません
-- キーボードだけで操作できる。矢印キーで結果を送り、手を止めずに次を打てます
-
-## 辞書ファイル（お持ちの方だけ）
-
-PDIC/Unicode 形式（`.dic`）と EPWING 形式の辞書を追加できます。
-自分の用語集と一緒に串刺しで引けます。無くても用語集だけで使えます。
-
-辞書データ自体はこのソフトウェアに含まれていません。
-各辞書の利用条件は、その辞書の提供元の定めに従ってください。
-
-## 保存場所について
-
-Safari で開いたときと、ホーム画面のアイコンから開いたときとでは、
-iOS が別のアプリとして扱います。**データは共有されません。**
-
-ホーム画面から開いたときは中身が空になっているので、
-辞書ファイルをもう一度開いてください。用語集は Excel に書き出して、
-あらためて読み込み直します。
-
-日常はホーム画面のアイコンからお使いください。
-そちらの保存領域は、しばらく使わなくても iOS に消されません。
-
-## データの扱い
-
-用語集も辞書も、利用者の端末の中だけに保存されます。
-著作権者を含む第三者に送信されることはありません。
-サーバーに保存する仕組みがありません。
-
-## 無保証
-
-本ソフトウェアは現状のまま提供され、いかなる保証も行いません。
+Unauthorised copying, modification, redistribution or publication is prohibited. Public visibility on GitHub does not grant any such permission.
