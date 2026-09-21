@@ -3,9 +3,19 @@
 **通訳者のための用語集アプリ（iPad・iPhone）**
 A glossary app for interpreters, for iPad and iPhone.
 
-案件ごとの用語集をExcelやNumbersから読み込み、その場で引けます。PDIC・EPWING辞書にも対応し、iCloud Driveを通じて複数の端末で同期できます。言語の組み合わせは問いません。
+案件ごとの用語集をExcelやNumbersから読み込み、その場で引けます。言語の組み合わせは問いません。
 
-Import each assignment's glossary from Excel or Numbers and look terms up on the spot. It also reads PDIC and EPWING dictionaries, syncs across your devices through iCloud Drive, and works with any language pair.
+- 用語集はアプリの中でそのまま追加・編集でき、Excelに書き出して控えも取れます
+- PDIC・EPWING辞書も読め、用語集と辞書をまとめて串刺し検索できます
+- 見つからない語は、ボタンひとつでChatGPTに照会でき、答えをそのまま用語集に登録できます
+- iCloud Driveを通じて、iPadとiPhoneの間でワンタップで同期できます
+
+Import each assignment's glossary from Excel or Numbers and look terms up on the spot. It works with any language pair.
+
+- Add and edit terms right in the app, and export to Excel to keep a copy
+- Read PDIC and EPWING dictionaries, and search your glossary and dictionaries together in one go
+- Send a missing term to ChatGPT with one tap, and save the answer straight into your glossary
+- Sync between iPad and iPhone with one tap through iCloud Drive
 
 ---
 
