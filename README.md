@@ -27,9 +27,15 @@ The app is currently in testing through TestFlight. Please contact the author if
 
 ## お問い合わせ / Support
 
-ご質問や不具合のご報告は、このリポジトリの **Issues** からお寄せください。TestFlightをお使いの方は、アプリのスクリーンショットから直接フィードバックを送ることもできます。
+ご質問や不具合のご報告は、メールでお寄せください。
+**[lexicon.support2026@gmail.com](mailto:lexicon.support2026@gmail.com)**
 
-For questions or problem reports, please open an **Issue** in this repository. TestFlight testers can also send feedback directly from a screenshot of the app.
+個人で開発しているため、返信に数日かかることがあります。ご了承ください。
+TestFlightをお使いの方は、アプリのスクリーンショットから直接フィードバックを送ることもできます。
+
+For questions or problem reports, please email **[lexicon.support2026@gmail.com](mailto:lexicon.support2026@gmail.com)**.
+As the app is developed by one person, replies may take a few days.
+TestFlight testers can also send feedback directly from a screenshot of the app.
 
 ## プライバシー / Privacy
 
