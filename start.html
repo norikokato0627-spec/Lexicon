@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>はじめの10ステップ — Lexicon for Interpreters</title>
+<style>
+body{max-width:44em;margin:0 auto;padding:40px 20px 80px;
+  font-family:"Helvetica Neue",Helvetica,"Hiragino Sans",Arial,sans-serif;
+  font-size:16px;line-height:1.9;color:#1C1E24;background:#fff}
+h1{font-family:Georgia,"Hiragino Mincho ProN",serif;font-weight:400;font-size:28px;
+  color:#1A2A52;margin:0 0 6px}
+h2{font-size:17px;color:#1A2A52;margin:34px 0 6px;padding-bottom:6px;border-bottom:1px solid #CFD3DA}
+.date{font-size:13px;color:#6B7280;margin-bottom:24px}
+.lead{margin:0 0 8px}
+ol{list-style:none;counter-reset:step;padding:0;margin:26px 0 0}
+ol li{counter-increment:step;position:relative;padding:0 0 18px 52px;margin:0}
+ol li::before{content:counter(step);position:absolute;left:0;top:2px;
+  width:32px;height:32px;border-radius:50%;background:#1A2A52;color:#fff;
+  font-size:15px;line-height:32px;text-align:center}
+ol li h3{margin:0 0 2px;font-size:16px;color:#1A2A52}
+ol li p{margin:0}
+.tip{font-size:14px;color:#6B7280}
+.en{margin-top:60px;padding-top:30px;border-top:2px solid #1A2A52}
+a{color:#1A2A52}
+code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
+@media (prefers-color-scheme:dark){
+  body{background:#111318;color:#E7E9ED} h1,h2,ol li h3{color:#8FA6DA}
+  .date,.tip{color:#9AA1AD} a{color:#8FA6DA} ol li::before{background:#8FA6DA;color:#111318}
+}
+@media print{ body{font-size:12pt} .en{page-break-before:always} }
+</style>
+</head>
+<body>
+
+<h1>はじめの10ステップ</h1>
+<div class="date">Lexicon for Interpreters ／ 2026年9月</div>
+
+<p class="lead">上から順に進めば、30分ほどで本番に使える状態になります。
+1〜4 だけでも、その日から使えます。</p>
+
+<ol>
+<li>
+  <h3>まず見本で使ってみる</h3>
+  <p>アプリを開き、最初の画面の「見本の用語集で試す」を押します。12語が入るので、
+  <code>METI</code>、<code>QE</code>、<code>hedge</code> などで引いてみてください。
+  <span class="tip">見本はあとで消せます。</span></p>
+</li>
+<li>
+  <h3>自分の用語集を1つ読み込む</h3>
+  <p>「Excelから読み込む」で、手元のファイルを1つ選びます。同じボタンから Numbers・Word・Pages も読めます
+  （WordとPagesは、文書の中の2列以上の表だけを読み取ります）。どの列が見出し語・訳語・用例かを
+  確かめる画面が出るので、確認して読み込みます。
+  <span class="tip">1行目が列名なら、自動で判別します。要る語だけ選ぶこともできます。</span></p>
+</li>
+<li>
+  <h3>読み込むときに案件名を付ける</h3>
+  <p>読み込んだファイル名が案件名の初期値に入っています。そのままでも、変更してもかまいません。
+  あとで案件ごとに絞り込めます。
+  <span class="tip">元のExcelはそのまま残ります。消さずに保管してください。</span></p>
+</li>
+<li>
+  <h3>3つの引き方を試す</h3>
+  <p>検索欄の下で切り替えます。<b>前方一致</b>がふだん使い、<b>完全一致</b>は略語に、
+  <b>訳語も検索</b>は訳語や用例の中まで探したいときに使います。<br>
+  「用語集と辞書」→「その他」→<b>訳語からも引く（逆引き）</b>にチェックを入れると、訳語の側からも引けます。</p>
+</li>
+<li>
+  <h3>「すべて」と案件の切り替え</h3>
+  <p>「用語集と辞書」を開くと、上に <b>すべて</b>・<b>共通</b>・案件名が並びます。
+  本番中は<b>すべて</b>で全部を横断して引き、準備のときだけ案件を選びます。
+  <span class="tip">共通＝案件を付けていない語。全部入りという意味ではありません。</span></p>
+</li>
+<li>
+  <h3>残りの用語集も入れる</h3>
+  <p>案件ごとのファイルは案件名を付けて、これまでの単語帳を合算したファイルは
+  <b>案件名を付けずに</b>読み込みます。後者は「共通」に入り、どの案件を選んでいても一緒に引けます。
+  <span class="tip">5万語・100案件でも遅くなりません。</span></p>
+</li>
+<li>
+  <h3>語を足す・直す</h3>
+  <p>右上の「＋ 追加」で登録します。引いた語を開いて直すこともできます。
+  本番中に出てきた言い回しを、その場で足しておけます。</p>
+</li>
+<li>
+  <h3>辞書を開く（持っていれば）</h3>
+  <p>「用語集と辞書」→「辞書」から、PDIC形式（.dic）やEPWING形式の辞書を追加します。
+  追加すると、用語集と辞書をまとめて串刺しで引けます。
+  <span class="tip">辞書がなくても、用語集だけで使えます。</span></p>
+</li>
+<li>
+  <h3>見つからない語をChatGPTで調べる</h3>
+  <p>検索欄の横の「ChatGPT」を押すと、質問文を持ってChatGPTが開きます。
+  答えはそのまま用語集に登録できます。登録せずに戻ってもかまいません。
+  <span class="tip">戻るときは、画面を下から上にはらってLexiconに切り替えます。</span></p>
+</li>
+<li>
+  <h3>控えと同期を用意する</h3>
+  <p>案件が終わったら「Excelで書き出す」で控えを取ります。本番に紙で持ち込むなら「Wordで書き出す」で、
+  見出し語と訳語の2列の表になります。Excelは「案件名.xlsx」として保存され、
+  見出し行がそのまま列名になるので、直してまた読み込めます。元のExcelに上書きすることもできますが、
+  ほかの列や書式は残らないので、別名で保存するほうが安全です。
+  iPadとiPhoneの両方で使うなら「同期する」を設定してください。1台目で同期ファイルを作り、
+  2台目でそれを選べば、あとは押すだけです。
+  <span class="tip">1台でも、作っておけば機種変更のときの備えになります。</span></p>
+</li>
+</ol>
+
+<h2>本番当日の使い方</h2>
+<p>「すべて」を選んだ状態で開いておき、出てきた語をその場で引く。
+知らない語は「＋ 追加」で書き留めておき、終わってからExcelに書き出す。これだけです。</p>
+
+<h2>困ったとき</h2>
+<p><a href="https://norikokato0627-spec.github.io/Lexicon/faq.html">よくある質問</a>をご覧ください。
+解決しない場合は <a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a> まで。</p>
+
+<div class="en">
+<h1>Ten steps to get started</h1>
+<div class="date">Lexicon for Interpreters — September 2026</div>
+
+<p class="lead">Work through these in order and you will be ready for a job in about half an hour.
+Steps 1 to 4 alone are enough to start using it today.</p>
+
+<ol>
+<li>
+  <h3>Try the sample first</h3>
+  <p>Open the app and tap “Try a sample glossary” on the opening screen. Twelve terms go in;
+  look up <code>METI</code>, <code>QE</code> or <code>hedge</code>.
+  <span class="tip">You can delete the sample later.</span></p>
+</li>
+<li>
+  <h3>Import one of your own glossaries</h3>
+  <p>Tap “Import from Excel” and choose your file. Numbers, Word and Pages go in through the same button
+  (from Word and Pages it reads the tables of two or more columns, nothing else). You are shown which
+  column is the headword, the translation and the example, so you can check first.
+  <span class="tip">Column names in the first row are recognised, and you can tick just the terms you want.</span></p>
+</li>
+<li>
+  <h3>Give it an assignment name as you import</h3>
+  <p>The file's own name is filled in as the assignment name; keep it or change it as you like.
+  It lets you narrow the search to that job later.
+  <span class="tip">Your original Excel file is untouched. Keep it.</span></p>
+</li>
+<li>
+  <h3>Try the three ways of searching</h3>
+  <p>Below the search box: <b>Starts with</b> for everyday use, <b>Exact</b> for abbreviations, and
+  <b>Full text</b> to search inside translations and examples as well.<br>
+  “Glossary &amp; dictionaries” → “More” → <b>Search from the translation too (reverse lookup)</b> lets you
+  look a term up from its translation.</p>
+</li>
+<li>
+  <h3>Switch between “All” and an assignment</h3>
+  <p>Open “Glossary &amp; dictionaries” and you will see <b>All</b>, <b>Shared</b> and your assignments.
+  Use <b>All</b> while you work, and choose an assignment when you prepare.
+  <span class="tip">Shared means “no assignment”, not “everything”.</span></p>
+</li>
+<li>
+  <h3>Bring in the rest of your glossaries</h3>
+  <p>Import each job's file with its assignment name. If you keep one large combined file, import it
+  <b>without</b> a name: it lands in Shared and is searched whichever assignment you choose.
+  <span class="tip">50,000 terms across 100 assignments still search instantly.</span></p>
+</li>
+<li>
+  <h3>Add and edit terms</h3>
+  <p>“+ Add” at the top right saves a new term, and any term you open can be edited. A phrase that
+  comes up mid-job can go in on the spot.</p>
+</li>
+<li>
+  <h3>Open your dictionaries, if you have any</h3>
+  <p>“Glossary &amp; dictionaries” → “Dictionaries” adds PDIC (.dic) and EPWING dictionaries. Once added,
+  they are searched together with your glossary.
+  <span class="tip">The app works perfectly well without any.</span></p>
+</li>
+<li>
+  <h3>Send a missing term to ChatGPT</h3>
+  <p>The ChatGPT button beside the search box opens ChatGPT with the question already written. You can
+  save the answer into your glossary, or come back without saving.
+  <span class="tip">Swipe up from the bottom of the screen to return to Lexicon.</span></p>
+</li>
+<li>
+  <h3>Set up copies and sync</h3>
+  <p>After a job, “Export to Excel” gives you a copy, and “Export to Word” gives you a two-column table to
+  print as your cheat sheet. The Excel file is saved as “assignment name.xlsx” with the header row as
+  column names, so you can edit it and import it again. You can overwrite your original file, but other
+  columns and formatting are not kept, so saving under a new name is safer. If you use both an iPad and an
+  iPhone, set up Sync: create the file on the first device, choose it on the second, and after that it is one tap.
+  <span class="tip">On a single device it still makes a good backup.</span></p>
+</li>
+</ol>
+
+<h2>On the day</h2>
+<p>Have the app open with <b>All</b> selected and look terms up as they come. Put anything new in with
+“+ Add”, and export to Excel when the job is over.</p>
+
+<h2>If you get stuck</h2>
+<p>See the <a href="https://norikokato0627-spec.github.io/Lexicon/faq.html">questions and answers</a>,
+or write to <a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a>.</p>
+</div>
+
+</body>
+</html>

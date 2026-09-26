@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>よくある質問 — Lexicon for Interpreters</title>
+<style>
+body{max-width:44em;margin:0 auto;padding:40px 20px 80px;
+  font-family:"Helvetica Neue",Helvetica,"Hiragino Sans",Arial,sans-serif;
+  font-size:16px;line-height:1.9;color:#1C1E24;background:#fff}
+h1{font-family:Georgia,"Hiragino Mincho ProN",serif;font-weight:400;font-size:28px;
+  color:#1A2A52;margin:0 0 6px}
+h2{font-size:17px;color:#1A2A52;margin:36px 0 8px;border-bottom:1px solid #CFD3DA;padding-bottom:6px}
+h3{font-size:16px;margin:26px 0 4px}
+li{margin-bottom:10px}
+code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
+.date{font-size:13px;color:#6B7280;margin-bottom:30px}
+.en{margin-top:60px;padding-top:30px;border-top:2px solid #1A2A52}
+a{color:#1A2A52}
+@media (prefers-color-scheme:dark){
+  body{background:#111318;color:#E7E9ED} h1,h2{color:#8FA6DA} .date{color:#9AA1AD} a{color:#8FA6DA}
+}
+</style>
+</head>
+<body>
+
+<h1>よくある質問</h1>
+<div class="date">Lexicon for Interpreters ／ 最終更新 2026年9月26日</div>
+
+<h2>はじめに</h2>
+
+<h3>このアプリだけで用語集が引けますか</h3>
+<p>Lexiconは、<b>お手持ちの用語集を持ち歩くための道具</b>です。用語集そのものは付属していません。
+ExcelやNumbersで作った単語帳を読み込んでお使いください。<br>
+辞書データも含まれていません。PDIC形式（.dic）やEPWING形式の辞書をお持ちであれば、
+追加して用語集と一緒に引けます。<br>
+なお、使い方を試すための見本の用語集（12語）はアプリの中に入っています。</p>
+
+<h2>用語集の入れ方</h2>
+
+<h3>どの形式のファイルから読み込めますか</h3>
+<p><b>Excel・Word・Numbers・Pages</b> から読み込めます。Excelは見出し語と訳語の列を読み取ります。<br>
+<b>WordとPagesは、文書の中の表だけを読み取ります。</b>2列以上の表が用語集とみなされ、
+前後の本文や、見出しを入れただけの1列の枠は取り込みません。中身のない列も落とします。
+本番用にWordであんちょこを作っている方は、その表をそのまま入れられます。<br>
+1つのファイルに表が複数あれば、「表1」「表2」と切り替えて選べます。列の並びが表によって違っても、
+「見出し語と訳語を入れ替える」で1タップで直せます。PDFからは読み込めません。</p>
+
+<h3>要る語だけを選んで入れられますか</h3>
+<p>できます。読み込み画面の「<b>語を選んで読み込む</b>」にチェックを入れると、行ごとにチェックが出ます。
+要らない行を外して読み込んでください。ボタンに入る語数が出ます。</p>
+
+<h3>持っているExcelの単語帳は、どれを入れればよいですか</h3>
+<p>全部入れてしまって大丈夫です。案件ごとのファイルは、案件名を付けたまま読み込んでください
+（「〇〇会議」など）。これまでの単語帳を1つに合算したファイルがあれば、案件名を付けずに読み込むと
+「共通」に入り、どの案件を選んでいても一緒に引けるようになります。</p>
+
+<h3>「すべて」と「共通」は、どう違いますか</h3>
+<ul>
+<li><b>すべて</b>：用語集の全部の語を横断して引きます。ふだんはこれで使います。</li>
+<li><b>案件名</b>：その案件の語と、案件を付けていない語だけに絞ります。本番前の準備に向いています。</li>
+<li><b>共通</b>：案件を付けていない語だけ。分野の定訳など、どの仕事でも使う語の置き場所です。</li>
+</ul>
+<p>「共通」は「全部入り」という意味ではなく、「案件なし」の語のことです。</p>
+
+<h3>どの案件に入れたか分からなくなりませんか</h3>
+<p>「すべて」で引けば、どこに入っていても見つかります。検索結果には案件名が小さく表示されるので、
+引いたあとに出どころも分かります。</p>
+
+<h3>使い方の例</h3>
+<p>よく使う案件を10件ほど入れておき、これまでに作ってきた単語帳は1つに合算して「共通」に入れておく。
+ふだんは「すべて」で横断して引き、本番前の準備のときだけ案件を選ぶ。</p>
+
+<h3>何語まで入れられますか</h3>
+<p>上限はありません。7万語で試して、1文字あたりの検索は0.02秒前後でした。
+通常の使い方で重くなることはありません。</p>
+
+<h3>検索結果が「300+」で止まります</h3>
+<p>画面に出すのは300件までです。1文字や2文字で引くと数千件が当たるため、そこで打ち切っています。
+もう1文字足すか、「完全一致」に切り替えてください。<br>
+案件を選んでいる間は、<b>その案件の語を先に確保してから</b>共通の語を入れるので、
+共通に数万語あっても、案件の語が押し出されることはありません。</p>
+
+<h3>元のExcelファイルは消してもよいですか</h3>
+<p>消さずに保管してください。アプリは「本番で引くための場所」で、原本はお手元のExcelです。
+端末を替えるときや、用語集を同僚と共有するときに必要になります。
+アプリの中で足した語も、「Excelで書き出す」でいつでも取り出せます。</p>
+
+<h2>表示と読みやすさ</h2>
+
+<h3>文字が大きすぎる／小さすぎる</h3>
+<p>画面右下の「A A」で、8段階に変えられます。iPhoneで一覧を多く見たいときは、小さいほうへ。</p>
+
+<h3>読み仮名がカタカナで読みづらい</h3>
+<p>「⚙︎ 設定」の「表示」にある「読み仮名をひらがなで表示」を入れると、表示のときだけひらがなになります。
+用語集の中身は変わりません。</p>
+
+<h3>見出し語のうしろに読み仮名がくっついている</h3>
+<p>古い辞書ソフトから書き出したExcelに多い形です（「人口爆弾ジンコウバクダン」など）。
+「用語集と辞書」→「その他」→「見出し語の末尾の読みを切り出す」で、見出し語と読みに分けられます。
+一覧から、分けてよい語にチェックを入れて実行してください。読みは「カタカナのまま」か「ひらがなに直す」かを選べます。
+実行前に「Excelで書き出す」で控えを取っておくと安心です。</p>
+
+<h2>書き出し（控えを取る・人に渡す）</h2>
+
+<h3>Excel・Word・CSVに書き出すには</h3>
+<p>「用語集と辞書」で範囲（「すべて」や案件）を選び、「Excelで書き出す」または「Wordで書き出す」を押します。
+CSVは「その他」の中にあります。<br>
+押すと「〇〇を用意しました」と出て、その下に「<b>iCloud Driveなどに保存する</b>」ボタンが現れます。
+そのボタンから、「“ファイル”に保存」で保存するか、AirDropやメールで人に渡せます。
+ファイルを作ってから押す形にしているのは、iOSの共有画面が押した直後しか開けないためです。</p>
+
+<h3>どの形式を使えばよいですか</h3>
+<ul>
+<li><b>Excel</b>：控えを取るとき、直してまた読み込むとき。見出し行がそのまま列名になります。</li>
+<li><b>Word</b>：本番に持ち込むあんちょこを作るとき。見出し語と訳語の2列の表になります。印刷しても、WordやPagesで手直ししてもかまいません。直したものは、また読み込めます。</li>
+<li><b>CSV</b>：Windows版PDICに取り込むとき。UTF-16で書き出します。</li>
+</ul>
+<p>PDICに取り込むときは、「辞書設定＜詳細＞ → 辞書変換」で、<b>変換元ファイル形式を「CSV形式」</b>にしてください。
+「PDICテキスト形式」のままだと、1語しか取り込まれません。</p>
+
+<h2>辞書（PDIC・EPWING）</h2>
+
+<h3>大きなEPWING辞書が開けません</h3>
+<p>zipのまま開こうとすると、辞書によっては数百MBを取り出すことになり、途中で止まることがあります。
+その場合は、zipではなく<b>フォルダの中のファイルを直接選んでください</b>。
+CATALOGS（辞書フォルダの一番上）と HONMON（DATAフォルダの中）の2つを選べば、展開せずにそのまま開けます。
+大きな辞書でも、必要な部分だけを読むので速く開きます。</p>
+
+<h3>開けない辞書があります</h3>
+<p>次の形式には、まだ対応していません。</p>
+<ul>
+<li><b>.ebz</b>（EBZIPで圧縮された辞書。ファイル名の末尾が .ebz のもの）</li>
+<li><b>電子ブック（EB）形式</b>（本文が START というファイルのもの）</li>
+</ul>
+<p>これらはEBPocketなどでお使いください。EPWING形式（CATALOGS と DATA/HONMON があるもの）と
+PDIC形式（.dic）は、そのまま開けます。</p>
+
+<h3>辞書が0語と表示されます</h3>
+<p>iCloudのダウンロードが終わっていないことが多いです。ファイルアプリでその辞書を開き、
+雲のマークを押して実体をダウンロードしてから、選び直してください。</p>
+
+<h2>アプリの更新</h2>
+
+<h3>新しいビルドに更新すると、用語集は消えますか</h3>
+<p>消えません。更新しても、用語集・辞書・設定はそのまま残ります。同期ファイルにも影響しません。<br>
+ただし、<b>アプリを削除して入れ直すと、中の用語集は消えます</b>。削除する予定があるときは、
+先に「Excelで書き出す」で控えを取るか、同期を設定しておいてください。</p>
+
+<h2>ChatGPTと外部検索</h2>
+
+<h3>ChatGPTで調べたあと、アプリにどう戻りますか</h3>
+<p>ChatGPTはこのアプリの外で開きます。画面を下から上にはらう（またはホームボタン）でLexiconに戻ると、
+元の続きから使えます。語を登録しないまま戻ってかまいません。</p>
+
+<h3>アプリの中で答えを出せますか</h3>
+<p>「⚙︎ 設定」の「外部検索」にOpenAIのAPIキーを入れると、アプリを離れずに答えが出ます。キーはその端末にだけ保存されます。</p>
+
+<h2>同期とバックアップ</h2>
+
+<h3>iPadとiPhoneで同じ用語集を使うには</h3>
+<p>「用語集と辞書」の「同期する」で、iCloud Driveの1つのファイルに保存します。
+最初だけ、1台目で「同期ファイルを新しく作る」、2台目で「選ぶ」を行ってください。
+以後は「同期する」を押すだけです。どちらの端末の語も消えません。</p>
+
+<h3>1台でしか使いませんが、同期は必要ですか</h3>
+<p>必要ありません。ただし作っておくと、機種変更やアプリの入れ直しのときの控えになります。</p>
+
+<h2>困ったとき</h2>
+<p>使い方のご質問、不具合のご報告は、
+<a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a> までお寄せください。
+個人で開発しているため、返信に数日かかることがあります。</p>
+
+<div class="en">
+<h1>Questions and answers</h1>
+<div class="date">Lexicon for Interpreters — last updated 26 September 2026</div>
+
+<h2>Before anything else</h2>
+
+<h3>Does the app come with a glossary?</h3>
+<p>No. Lexicon is a tool for carrying <b>your own glossaries</b>: import the word lists you have made in
+Excel or Numbers.<br>
+No dictionary data is included either. If you own PDIC (.dic) or EPWING dictionaries, you can add them and
+search them together with your glossary.<br>
+A twelve-term sample glossary is built into the app so you can try it out.</p>
+
+<h2>Getting your glossary in</h2>
+
+<h3>Which file formats can be imported?</h3>
+<p><b>Excel, Word, Numbers and Pages.</b> Excel gives it a column of headwords and a column of translations.<br>
+<b>From Word and Pages it reads the tables only.</b> A table of two or more columns is taken as a glossary;
+the prose around it, and a one-column box holding nothing but a heading, are left out, as are columns with
+nothing in them. If you keep your booth cheat sheet as a Word table, it goes straight in.<br>
+Several tables in one file appear as “Table 1”, “Table 2” and so on. If the languages sit in a different
+order from one table to the next, “Swap headword and translation” fixes it in one tap. PDFs cannot be imported.</p>
+
+<h3>Can I import only some of the terms?</h3>
+<p>Yes. Tick <b>“Choose which terms to import”</b> on the import screen and every row gets a tick box. Untick
+what you don't want; the button shows how many terms will go in.</p>
+
+<h3>Which of my Excel glossaries should I import?</h3>
+<p>All of them. Import each assignment's file with its own assignment name. If you keep one large file
+combining everything you have collected over the years, import it <i>without</i> an assignment name: it
+then lands in “Shared” and is searched whichever assignment you have chosen.</p>
+
+<h3>What is the difference between “All” and “Shared”?</h3>
+<ul>
+<li><b>All</b>: searches every term in your glossary. This is the everyday setting.</li>
+<li><b>An assignment</b>: narrows the search to that assignment's terms plus the terms with no assignment.</li>
+<li><b>Shared</b>: the terms with no assignment — standard renderings you use on every job.</li>
+</ul>
+<p>“Shared” does not mean “everything”; it means “no assignment”.</p>
+
+<h3>Won't I lose track of which assignment a term is in?</h3>
+<p>With “All” chosen, a term is found wherever it lives, and each result shows its assignment name, so you
+can see where it came from.</p>
+
+<h3>How many terms can it hold?</h3>
+<p>There is no limit. Tested with 70,000 terms, each keystroke took about two hundredths of a second.</p>
+
+<h3>The result list stops at “300+”</h3>
+<p>Three hundred results are shown at a time. One or two letters can match several thousand terms, so the
+list stops there. Type another letter, or switch to “Exact”.<br>
+While an assignment is chosen, <b>its terms are taken first</b> and the shared terms fill what is left, so
+a shared glossary of tens of thousands never crowds the assignment out.</p>
+
+<h3>Can I delete my original Excel files?</h3>
+<p>Please keep them. The app is where you look things up; your Excel files are the originals you will need
+for a new device, or to share a glossary with a colleague. Anything you add in the app can be taken out
+again with “Export to Excel”.</p>
+
+<h2>Reading the screen</h2>
+
+<h3>The text is too large or too small</h3>
+<p>The “A A” buttons at the bottom right step through eight sizes. Choose a smaller one to see more terms
+at once on an iPhone.</p>
+
+<h3>Kana readings are in katakana and hard to read</h3>
+<p>Turn on “Show kana readings in hiragana” under Settings → Display. Only the display changes; your glossary is
+untouched.</p>
+
+<h3>The reading is stuck onto the end of the headword</h3>
+<p>Older dictionary software often exported glossaries this way. Open “Glossary &amp; dictionaries” → “More” →
+“Split a reading off the end of headwords”, tick the terms to split, and run it. The reading can be kept in katakana
+or converted to hiragana. Take a copy with “Export to Excel” first.</p>
+
+<h2>Exporting</h2>
+
+<h3>How do I export to Excel, Word or CSV?</h3>
+<p>In “Glossary &amp; dictionaries”, choose what to export (All, or one assignment) and tap “Export to Excel”
+or “Export to Word”. The CSV export is under “More”.<br>
+The file is built first, and a <b>“Save to iCloud Drive”</b> button appears below. That button opens the
+share sheet, where you can save the file or send it by AirDrop or email. It works this way because iOS only
+opens the share sheet on a tap of its own.</p>
+
+<h3>Which format should I use?</h3>
+<ul>
+<li><b>Excel</b>: for a copy you may edit and import again. The header row becomes the column names.</li>
+<li><b>Word</b>: for the cheat sheet you take into the booth — a two-column table of headwords and
+translations. Print it, or edit it in Word or Pages; an edited file can be imported again.</li>
+<li><b>CSV</b>: to import into PDIC on Windows. Written in UTF-16.</li>
+</ul>
+<p>In PDIC, use “Dictionary settings (advanced) → Convert dictionary” and set the <b>source file format to CSV</b>.
+Left as “PDIC text format”, only one entry is imported.</p>
+
+<h2>Dictionaries (PDIC and EPWING)</h2>
+
+<h3>A large EPWING dictionary will not open</h3>
+<p>Opening it as a zip can mean extracting several hundred megabytes, which may stall. Instead of the zip,
+<b>choose the files in the folder directly</b>: CATALOGS (at the top of the dictionary folder) and HONMON
+(inside the DATA folder). Nothing is extracted, and even a large dictionary opens at once, as only the parts
+being read are fetched.</p>
+
+<h3>Some dictionaries cannot be opened</h3>
+<p>These formats are not supported yet:</p>
+<ul>
+<li><b>.ebz</b> — dictionaries compressed with EBZIP (file names ending in .ebz)</li>
+<li><b>Electronic Book (EB) format</b> — where the text file is called START</li>
+</ul>
+<p>Please use an app such as EBPocket for those. EPWING dictionaries (with CATALOGS and DATA/HONMON) and
+PDIC dictionaries (.dic) open as they are.</p>
+
+<h3>A dictionary shows 0 entries</h3>
+<p>Usually the file has not finished downloading from iCloud. Open it in the Files app, tap the cloud icon to
+download it, then choose it again.</p>
+
+<h2>Updates</h2>
+
+<h3>Does updating to a new build erase my glossary?</h3>
+<p>No. Your glossary, dictionaries and settings survive an update, and the sync file is unaffected.<br>
+<b>Deleting the app does erase the glossary inside it</b>, so take a copy with “Export to Excel”, or set up
+Sync, before you delete it.</p>
+
+<h2>ChatGPT and external lookups</h2>
+
+<h3>How do I get back to the app after looking a term up in ChatGPT?</h3>
+<p>ChatGPT opens outside the app. Swipe up from the bottom of the screen (or press the Home button) to come
+back to Lexicon, which is still where you left it. You do not have to save the term.</p>
+
+<h3>Can the answer appear inside the app?</h3>
+<p>Yes, if you put an OpenAI API key under Settings → External search. The key is kept on that device only.</p>
+
+<h2>Sync and backup</h2>
+
+<h3>How do I use the same glossary on an iPad and an iPhone?</h3>
+<p>Use Sync in “Glossary &amp; dictionaries”, which keeps one file in your iCloud Drive. The first device creates
+the file; the second one chooses it. After that, all you press is Sync, and no device loses anything.</p>
+
+<h3>I only use one device. Do I need sync?</h3>
+<p>No, but the file makes a good backup for a new device or a reinstall.</p>
+
+<h2>Getting help</h2>
+<p>For questions or problem reports, please email
+<a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a>.
+As the app is made by one person, replies may take a few days.</p>
+</div>
+
+</body>
+</html>

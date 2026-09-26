@@ -3,16 +3,18 @@
 **通訳者のための用語集アプリ（iPad・iPhone）**
 A glossary app for interpreters, for iPad and iPhone.
 
-案件ごとの用語集をExcelやNumbersから読み込み、その場で引けます。言語の組み合わせは問いません。
+案件ごとの用語集をExcelから読み込み、その場で引けます。言語の組み合わせは問いません。
 
-- 用語集はアプリの中でそのまま追加・編集でき、Excelに書き出して控えも取れます
+- Numbers・Word・Pagesからも読み込めます（WordとPagesは文書の中の2列以上の表）
+- 用語集はアプリの中でそのまま追加・編集でき、ExcelとWordに書き出せます
 - PDIC・EPWING辞書も読め、用語集と辞書をまとめて串刺し検索できます
 - 見つからない語は、ボタンひとつでChatGPTに照会でき、答えをそのまま用語集に登録できます
 - iCloud Driveを通じて、iPadとiPhoneの間でワンタップで同期できます
 
-Import each assignment's glossary from Excel or Numbers and look terms up on the spot. It works with any language pair.
+Import each assignment's glossary from Excel and look terms up on the spot. It works with any language pair.
 
-- Add and edit terms right in the app, and export to Excel to keep a copy
+- Numbers, Word and Pages can be imported too (from Word and Pages it reads the tables of two or more columns)
+- Add and edit terms right in the app, and export to Excel or Word
 - Read PDIC and EPWING dictionaries, and search your glossary and dictionaries together in one go
 - Send a missing term to ChatGPT with one tap, and save the answer straight into your glossary
 - Sync between iPad and iPhone with one tap through iCloud Drive
@@ -36,6 +38,16 @@ TestFlightをお使いの方は、アプリのスクリーンショットから�
 For questions or problem reports, please email **[lexicon.support2026@gmail.com](mailto:lexicon.support2026@gmail.com)**.
 As the app is developed by one person, replies may take a few days.
 TestFlight testers can also send feedback directly from a screenshot of the app.
+
+## はじめの10ステップ / Ten steps to get started
+
+[はじめの10ステップ / Ten steps to get started](https://norikokato0627-spec.github.io/Lexicon/start.html)
+
+## よくある質問 / Questions and answers
+
+用語集の入れ方、「すべて」と「共通」の違い、同期、ChatGPTの使い方など。
+
+[よくある質問 / FAQ](https://norikokato0627-spec.github.io/Lexicon/faq.html)
 
 ## プライバシー / Privacy
 
