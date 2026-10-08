@@ -81,12 +81,27 @@ ExcelやNumbersで作った単語帳を読み込んでお使いください。<b
 案件を選んでいる間は、<b>その案件の語を先に確保してから</b>共通の語を入れるので、
 共通に数万語あっても、案件の語が押し出されることはありません。</p>
 
+<h3>打ち間違えると何も出ません</h3>
+<p>出ます。<b>一致する語が一つも無かったときだけ</b>、1〜2文字の違いを見逃して引き直し、
+見出しを「<b>「〜」に近い語</b>」に変えて並べます。本番中に慌てて打ったときのための仕組みです。<br>
+拾えるのは、1字違う（serenitt）・1字足りない（serenty）・1字多い（sereenity）・
+隣どうしが入れ替わった（seernity）、それに漢字やカタカナの打ち間違い（温質効果ガス→温室効果ガス）です。
+4文字以上で働きます。7文字までは1文字、それ以上は2文字まで見逃します。<br>
+語の<b>途中</b>に打った言葉が入っている語も、このとき一緒に出ます（「prayer」で「serenity prayer」）。<br>
+一致する語がある限り、この働きは出てきません。正しく引けているときの結果が薄まることはありません。</p>
+
 <h3>元のExcelファイルは消してもよいですか</h3>
 <p>消さずに保管してください。アプリは「本番で引くための場所」で、原本はお手元のExcelです。
 端末を替えるときや、用語集を同僚と共有するときに必要になります。
 アプリの中で足した語も、「Excelで書き出す」でいつでも取り出せます。</p>
 
 <h2>表示と読みやすさ</h2>
+
+<h3>検索欄を空にすると、何が出ますか</h3>
+<p>いま選んでいる案件の語が、そのまま一覧で出ます。<b>紙のあんちょこの代わりです。</b>
+ブースに入る前に今日の案件を選んでおけば、Excelを開き直さずに、上から順に目を通せます。<br>
+「すべて」を選んでいるときは全部の語が、「共通」なら案件を付けていない語が出ます。
+一覧の上の切り替えで「最近引いた語」にすると、直前に引いた語が並びます。</p>
 
 <h3>文字が大きすぎる／小さすぎる</h3>
 <p>画面右下の「A A」で、8段階に変えられます。iPhoneで一覧を多く見たいときは、小さいほうへ。</p>
@@ -166,6 +181,17 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 <h3>1台でしか使いませんが、同期は必要ですか</h3>
 <p>必要ありません。ただし作っておくと、機種変更やアプリの入れ直しのときの控えになります。</p>
 
+<h3>片方の端末だけ語が足りません</h3>
+<p>その端末で、その語を消したことになっている場合があります。一度消した語は、同期しても戻ってきません。
+消したものが勝手に復活しないための仕組みで、この記録は90日で消えます。<br>
+戻すときは、<b>語が残っている端末で「Excelで書き出す」</b>を押し、
+そのファイルを<b>足りない端末で読み込みます</b>。逆の向きでは直りません。足りない端末には、その語がないからです。
+すでにある語は上書きされるだけなので、二重にはなりません。</p>
+
+<h3>片方で消すと、もう片方からも消えますか</h3>
+<p>消えます。次に同期したときに伝わります。
+用語集や案件を消す前に、「Excelで書き出す」で控えを取っておいてください。</p>
+
 <h2>困ったとき</h2>
 <p>使い方のご質問、不具合のご報告は、
 <a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a> までお寄せください。
@@ -224,12 +250,29 @@ list stops there. Type another letter, or switch to “Exact”.<br>
 While an assignment is chosen, <b>its terms are taken first</b> and the shared terms fill what is left, so
 a shared glossary of tens of thousands never crowds the assignment out.</p>
 
+<h3>A typo and nothing comes back</h3>
+<p>It does come back. <b>Only when nothing at all matches</b>, the search runs again forgiving a character
+or two and the heading changes to “<b>Close to …</b>”. It is there for the moment you are typing in a hurry
+in the middle of a session.<br>
+It catches a wrong letter (serenitt), a missing one (serenty), a doubled one (sereenity), two letters
+swapped (seernity), and the same kinds of slip in kanji and katakana. It needs four characters or more:
+up to seven characters one mistake is forgiven, beyond that two.<br>
+Terms that hold what you typed further in are offered at the same time (“prayer” finds “serenity prayer”).<br>
+As long as something matches properly, none of this appears, so an ordinary search is never diluted.</p>
+
 <h3>Can I delete my original Excel files?</h3>
 <p>Please keep them. The app is where you look things up; your Excel files are the originals you will need
 for a new device, or to share a glossary with a colleague. Anything you add in the app can be taken out
 again with “Export to Excel”.</p>
 
 <h2>Reading the screen</h2>
+
+<h3>What is shown when the search box is empty?</h3>
+<p>The terms of the assignment you have chosen, listed in order — <b>your paper cheat sheet, on screen.</b>
+Choose today's assignment before you go in and you can read through it from the top without opening the
+spreadsheet again.<br>
+With “All” chosen you get everything; with “Shared”, the terms with no assignment. The switch above the
+list changes it to the terms you looked up most recently.</p>
 
 <h3>The text is too large or too small</h3>
 <p>The “A A” buttons at the bottom right step through eight sizes. Choose a smaller one to see more terms
@@ -308,6 +351,17 @@ the file; the second one chooses it. After that, all you press is Sync, and no d
 
 <h3>I only use one device. Do I need sync?</h3>
 <p>No, but the file makes a good backup for a new device or a reinstall.</p>
+
+<h3>One device is missing some terms</h3>
+<p>It may still be remembering that you deleted them. A term deleted on one device does not come back
+through sync, so that deletions stick (the record is let go of after 90 days).<br>
+To get them back, <b>export to Excel on the device that still has them</b> and <b>import that file on the
+device that is missing them</b> — not the other way round. Terms already there are updated rather than
+duplicated.</p>
+
+<h3>If I delete on one device, does it go from the other?</h3>
+<p>Yes, the next time you sync. Export to Excel before deleting a glossary or an assignment if you may
+want it later.</p>
 
 <h2>Getting help</h2>
 <p>For questions or problem reports, please email
