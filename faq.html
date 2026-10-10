@@ -157,6 +157,12 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 
 <h2>アプリの更新</h2>
 
+<h3>一度開いた辞書は、ずっと残りますか</h3>
+<p>残ります。辞書は一度開くと端末に保存され、次の起動から自動で読み込まれます。案件を削除しても、<b>辞書は閉じません</b>。
+用語集と辞書は別の棚だからです。終わった案件の用語集を辞書として開いておけば、案件を片付けたあとも引き続き引けます。<br>
+閉じたいときは「用語集と辞書」→<b>辞書</b>タブ→その行の <b>×</b>。元のファイルは消えません。<br>
+検索欄の上では、案件の札と辞書の札のあいだに細い仕切りと「辞書」の見出しが入ります。どちらの棚のものかは、そこで見分けてください。</p>
+
 <h3>新しいビルドに更新すると、用語集は消えますか</h3>
 <p>消えません。更新しても、用語集・辞書・設定はそのまま残ります。同期ファイルにも影響しません。<br>
 ただし、<b>アプリを削除して入れ直すと、中の用語集は消えます</b>。削除する予定があるときは、
@@ -187,6 +193,17 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 戻すときは、<b>語が残っている端末で「Excelで書き出す」</b>を押し、
 そのファイルを<b>足りない端末で読み込みます</b>。逆の向きでは直りません。足りない端末には、その語がないからです。
 すでにある語は上書きされるだけなので、二重にはなりません。</p>
+
+<h3>同期が合わなくなって、直せません</h3>
+<p>足し合わせても直りません。どちらが正しいか決まらないからです。<b>1台を「正」と決めて、そこから配り直します。</b><br>
+「用語集と辞書」→「同期する」の下の<b>「合わなくなったときは、やり直す」</b>を開いてください。<br>
+<b>① 正にする端末で</b>「この端末の用語集で、同期ファイルを置き換える」。iCloud Driveの同期ファイルが、その端末の内容で丸ごと置き換わります。<br>
+<b>② ほかの端末それぞれで</b>「この端末の用語集を消して、同期ファイルから入れ直す」。その端末の語は全部消えて、同期ファイルの内容になります。<br>
+②を押す前に、その端末に<b>そこにしか無い語</b>が無いか確かめてください。あるなら、先に「Excelで書き出す」で控えを取り、やり直したあとに読み込み直せば戻せます。</p>
+
+<h3>本番の直後に同期したい</h3>
+<p>最初の画面の右上、「設定」の下に<b>「同期する」</b>があります。「用語集と辞書」を開かなくても、その場で押せます。
+ブースで足した語がある間は、数字が付きます。</p>
 
 <h3>片方で消すと、もう片方からも消えますか</h3>
 <p>消えます。次に同期したときに伝わります。
@@ -329,6 +346,16 @@ download it, then choose it again.</p>
 
 <h2>Updates</h2>
 
+<h3>Does a dictionary I opened once stay open?</h3>
+<p>It does. A dictionary is kept on the device once opened and loads by itself from then on. Deleting an
+assignment does <b>not</b> close a dictionary — the glossary and the dictionaries are separate shelves. A
+finished assignment exported and opened as a dictionary therefore stays searchable after the assignment
+itself is gone.<br>
+To close one: “Glossary &amp; dictionaries” → <b>Dictionaries</b> → the <b>×</b> on its row. The original file
+is untouched.<br>
+Above the search box, a thin rule and the word “Dictionaries” mark where the glossary chips end and the
+dictionary chips begin.</p>
+
 <h3>Does updating to a new build erase my glossary?</h3>
 <p>No. Your glossary, dictionaries and settings survive an update, and the sync file is unaffected.<br>
 <b>Deleting the app does erase the glossary inside it</b>, so take a copy with “Export to Excel”, or set up
@@ -358,6 +385,21 @@ through sync, so that deletions stick (the record is let go of after 90 days).<b
 To get them back, <b>export to Excel on the device that still has them</b> and <b>import that file on the
 device that is missing them</b> — not the other way round. Terms already there are updated rather than
 duplicated.</p>
+
+<h3>The devices have drifted apart and sync will not fix it</h3>
+<p>Adding them together will not fix it, because nothing says which side is correct. <b>Declare one device
+right and fill the others from it.</b><br>
+Open “Glossary &amp; dictionaries” → under Sync, <b>“If they have drifted apart, start over”</b>.<br>
+<b>① On the device you are declaring right:</b> “Replace the sync file with this device’s glossary”. The file
+on iCloud Drive is replaced outright.<br>
+<b>② On each of the other devices:</b> “Clear this glossary and take the sync file as it stands”. Everything
+on that device is cleared and replaced.<br>
+Before ②, check whether that device holds anything that lives nowhere else. If it does, export to Excel
+first and read it back in afterwards.</p>
+
+<h3>Syncing straight after a job</h3>
+<p><b>Sync</b> sits on the first screen, top right under Settings, so the glossary sheet does not have to be
+opened at all. While there are terms added in the booth, it carries a count.</p>
 
 <h3>If I delete on one device, does it go from the other?</h3>
 <p>Yes, the next time you sync. Export to Excel before deleting a glossary or an assignment if you may
