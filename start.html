@@ -63,11 +63,11 @@ code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
   <h3>3つの引き方を試す</h3>
   <p>検索欄の下で切り替えます。<b>前方一致</b>がふだん使い、<b>完全一致</b>は略語に、
   <b>訳語も検索</b>は訳語や用例の中まで探したいときに使います。<br>
-  「用語集と辞書」→「その他」→<b>訳語からも引く（逆引き）</b>にチェックを入れると、訳語の側からも引けます。</p>
+  「用語集」の<b>引き方</b>で<b>訳語からも引く（逆引き）</b>にチェックを入れると、訳語の側からも引けます。</p>
 </li>
 <li>
   <h3>「すべて」と案件の切り替え</h3>
-  <p>「用語集と辞書」を開くと、上に <b>すべて</b>・<b>共通</b>・案件名が並びます。
+  <p>「用語集」を開くと、上に <b>すべて</b>・<b>共通</b>・案件名が並びます。
   本番中は<b>すべて</b>で全部を横断して引き、準備のときだけ案件を選びます。
   <span class="tip">共通＝案件を付けていない語。全部入りという意味ではありません。</span></p>
 </li>
@@ -83,12 +83,6 @@ code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
   本番中に出てきた言い回しを、その場で足しておけます。</p>
 </li>
 <li>
-  <h3>辞書を開く（持っていれば）</h3>
-  <p>「用語集と辞書」→「辞書」から、PDIC形式（.dic）やEPWING形式の辞書を追加します。
-  追加すると、用語集と辞書をまとめて串刺しで引けます。
-  <span class="tip">辞書がなくても、用語集だけで使えます。</span></p>
-</li>
-<li>
   <h3>見つからない語をChatGPTで調べる</h3>
   <p>検索欄の横の「ChatGPT」を押すと、質問文を持ってChatGPTが開きます。
   答えはそのまま用語集に登録できます。登録せずに戻ってもかまいません。
@@ -100,9 +94,15 @@ code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
   見出し語と訳語の2列の表になります。Excelは「案件名.xlsx」として保存され、
   見出し行がそのまま列名になるので、直してまた読み込めます。元のExcelに上書きすることもできますが、
   ほかの列や書式は残らないので、別名で保存するほうが安全です。
-  iPadとiPhoneの両方で使うなら「同期する」を設定してください。1台目で同期ファイルを作り、
-  2台目でそれを選べば、あとは押すだけです。
+  iPadとiPhoneの両方で使うなら、「用語集」の<b>ほかの端末と同期する</b>を押してください。
+  1台目は「この端末から始める」、2台目は「もう1台に合わせる」。あとは「同期する」を押すだけです。
   <span class="tip">1台でも、作っておけば機種変更のときの備えになります。</span></p>
+</li>
+<li>
+  <h3>辞書を持っていれば、最後に</h3>
+  <p>PDIC形式（.dic）やEPWING形式の辞書をお持ちなら、「⚙︎ 設定」のいちばん下、<b>辞書を開く・整理する</b>から追加できます。
+  追加すると、用語集と辞書をまとめて串刺しで引けます。
+  <span class="tip">ここは、お持ちの方だけの機能です。辞書がなくても、用語集だけで本番を通せます。</span></p>
 </li>
 </ol>
 
@@ -147,7 +147,7 @@ Steps 1 to 4 alone are enough to start using it today.</p>
   <h3>Try the three ways of searching</h3>
   <p>Below the search box: <b>Starts with</b> for everyday use, <b>Exact</b> for abbreviations, and
   <b>Full text</b> to search inside translations and examples as well.<br>
-  “Glossary &amp; dictionaries” → “More” → <b>Search from the translation too (reverse lookup)</b> lets you
+  In “Glossary”, under <b>How it searches</b>, <b>Search from the translation too (reverse lookup)</b> lets you
   look a term up from its translation.</p>
 </li>
 <li>
@@ -168,12 +168,6 @@ Steps 1 to 4 alone are enough to start using it today.</p>
   comes up mid-job can go in on the spot.</p>
 </li>
 <li>
-  <h3>Open your dictionaries, if you have any</h3>
-  <p>“Glossary &amp; dictionaries” → “Dictionaries” adds PDIC (.dic) and EPWING dictionaries. Once added,
-  they are searched together with your glossary.
-  <span class="tip">The app works perfectly well without any.</span></p>
-</li>
-<li>
   <h3>Send a missing term to ChatGPT</h3>
   <p>The ChatGPT button beside the search box opens ChatGPT with the question already written. You can
   save the answer into your glossary, or come back without saving.
@@ -185,8 +179,16 @@ Steps 1 to 4 alone are enough to start using it today.</p>
   print as your cheat sheet. The Excel file is saved as “assignment name.xlsx” with the header row as
   column names, so you can edit it and import it again. You can overwrite your original file, but other
   columns and formatting are not kept, so saving under a new name is safer. If you use both an iPad and an
-  iPhone, set up Sync: create the file on the first device, choose it on the second, and after that it is one tap.
+  iPhone, press <b>Sync with your other device</b> in “Glossary”: the first device starts, the second joins it,
+  and after that it is one tap.
   <span class="tip">On a single device it still makes a good backup.</span></p>
+</li>
+<li>
+  <h3>Last of all: your dictionaries, if you have any</h3>
+  <p>PDIC (.dic) and EPWING dictionaries are added at the foot of Settings, under <b>Open and manage
+  dictionaries</b>. Once added, they are searched together with your glossary.
+  <span class="tip">This one is only for those who have them. The app carries a job perfectly well on your
+  glossary alone.</span></p>
 </li>
 </ol>
 

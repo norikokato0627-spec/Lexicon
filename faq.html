@@ -112,14 +112,14 @@ ExcelやNumbersで作った単語帳を読み込んでお使いください。<b
 
 <h3>見出し語のうしろに読み仮名がくっついている</h3>
 <p>古い辞書ソフトから書き出したExcelに多い形です（「人口爆弾ジンコウバクダン」など）。
-「用語集と辞書」→「その他」→「見出し語の末尾の読みを切り出す」で、見出し語と読みに分けられます。
+「用語集」→「その他」→「見出し語の末尾の読みを切り出す」で、見出し語と読みに分けられます。
 一覧から、分けてよい語にチェックを入れて実行してください。読みは「カタカナのまま」か「ひらがなに直す」かを選べます。
 実行前に「Excelで書き出す」で控えを取っておくと安心です。</p>
 
 <h2>書き出し（控えを取る・人に渡す）</h2>
 
 <h3>Excel・Word・CSVに書き出すには</h3>
-<p>「用語集と辞書」で範囲（「すべて」や案件）を選び、「Excelで書き出す」または「Wordで書き出す」を押します。
+<p>「用語集」で範囲（「すべて」や案件）を選び、「Excelで書き出す」または「Wordで書き出す」を押します。
 CSVは「その他」の中にあります。<br>
 押すと「〇〇を用意しました」と出て、その下に「<b>iCloud Driveなどに保存する</b>」ボタンが現れます。
 そのボタンから、「“ファイル”に保存」で保存するか、AirDropやメールで人に渡せます。
@@ -160,8 +160,18 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 <h3>一度開いた辞書は、ずっと残りますか</h3>
 <p>残ります。辞書は一度開くと端末に保存され、次の起動から自動で読み込まれます。案件を削除しても、<b>辞書は閉じません</b>。
 用語集と辞書は別の棚だからです。終わった案件の用語集を辞書として開いておけば、案件を片付けたあとも引き続き引けます。<br>
-閉じたいときは「用語集と辞書」→<b>辞書</b>タブ→その行の <b>×</b>。元のファイルは消えません。<br>
+閉じたいときは「⚙︎ 設定」→<b>辞書を開く・整理する</b>→その行の <b>×</b>。元のファイルは消えません。<br>
 検索欄の上では、案件の札と辞書の札のあいだに細い仕切りと「辞書」の見出しが入ります。どちらの棚のものかは、そこで見分けてください。</p>
+
+<h3>大きな辞書を開くと「端末に保存しますか」と訊かれます</h3>
+<p>150MBを超える辞書は、容量を使うので確認します。<b>保存する</b>と、次からはアプリを開くだけで引けます。
+<b>保存しない</b>を選んでも、その辞書はアプリを閉じるまで引けます。次に使うときは、また辞書フォルダを選んでください。<br>
+端末の空きが足りないときは、訊かずに「保存しません」と出ます。使わない辞書を「端末に保存した辞書」から外すと空きが増えます。</p>
+
+<h3>大きなEPWING辞書が開けません</h3>
+<p>zipにまとめたものは、辞書が大きいと展開の途中で止まることがあります。
+<b>辞書フォルダの中の <code>CATALOGS</code> と、<code>DATA</code> の中の <code>HONMON</code> の2つを直接選んでください。</b>
+まとめて選べます。zipを展開しない分、大きな辞書でも開けます。</p>
 
 <h3>新しいビルドに更新すると、用語集は消えますか</h3>
 <p>消えません。更新しても、用語集・辞書・設定はそのまま残ります。同期ファイルにも影響しません。<br>
@@ -174,15 +184,33 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 <p>ChatGPTはこのアプリの外で開きます。画面を下から上にはらう（またはホームボタン）でLexiconに戻ると、
 元の続きから使えます。語を登録しないまま戻ってかまいません。</p>
 
+<h3>ChatGPTの有料会員でないと使えませんか</h3>
+<p><b>要りません。</b>「ChatGPT」ボタンは、質問文を持ってChatGPTを開くだけです。無料のアカウントで使えますし、
+ChatGPTアプリが入っていなくてもSafariで開きます。<br>
+宛先は「⚙︎ 設定」の「外部検索」で <b>Google・Weblio・DeepL</b> にも変えられます。どれも登録も費用も要りません。<br>
+用語集・辞書・同期・Excelの読み書きは、外部検索とは関係なく、すべてアプリの中だけで動きます。</p>
+
 <h3>アプリの中で答えを出せますか</h3>
 <p>「⚙︎ 設定」の「外部検索」にOpenAIのAPIキーを入れると、アプリを離れずに答えが出ます。キーはその端末にだけ保存されます。</p>
+
+<h3>APIの費用が心配です</h3>
+<p>まず、<b>ChatGPT Plusとは別の契約です。</b>Plusに入っていても、APIは使えません。APIは使った分だけの前払いで、
+OpenAIの画面でクレジットを買って使います。<br>
+使いすぎを防ぐ要点は三つです。<br>
+<b>①「自動チャージ」を切る。</b>初期設定では入っています。切っておけば、入れた金額を使い切ったところで止まります。
+これが実質の歯止めです。<br>
+<b>② 月あたりの上限は、毎月戻ります。</b>月の予算を決める設定で、翌月にはまた同じ額まで使えます。
+「これ以上は絶対に使わない」という歯止めにはなりません。<br>
+<b>③ 買ったクレジットは1年で期限切れ</b>になります。少しずつ買い足すほうが無駄がありません。<br>
+用語の照会1回あたりは、ごく小さな額です。少額を入れて自動チャージを切っておけば、それ以上はかかりません。</p>
 
 <h2>同期とバックアップ</h2>
 
 <h3>iPadとiPhoneで同じ用語集を使うには</h3>
-<p>「用語集と辞書」の「同期する」で、iCloud Driveの1つのファイルに保存します。
-最初だけ、1台目で「同期ファイルを新しく作る」、2台目で「選ぶ」を行ってください。
-以後は「同期する」を押すだけです。どちらの端末の語も消えません。</p>
+<p>「用語集」の<b>「ほかの端末と同期する」</b>を押すと、1台目か2台目かだけを訊かれます。<br>
+<b>1台目の端末で</b>「この端末から始める」。その端末の用語集がiCloud Driveに預けられます。<br>
+<b>2台目の端末で</b>「もう1台に合わせる」。iCloud Driveが開くので、1台目が作った「Lexicon同期」を選びます。<br>
+以後は、どちらの端末でも「同期する」を押すだけです。どちらの端末の語も消えません。</p>
 
 <h3>1台でしか使いませんが、同期は必要ですか</h3>
 <p>必要ありません。ただし作っておくと、機種変更やアプリの入れ直しのときの控えになります。</p>
@@ -196,13 +224,25 @@ PDIC形式（.dic）は、そのまま開けます。</p>
 
 <h3>同期が合わなくなって、直せません</h3>
 <p>足し合わせても直りません。どちらが正しいか決まらないからです。<b>1台を「正」と決めて、そこから配り直します。</b><br>
-「用語集と辞書」→「同期する」の下の<b>「合わなくなったときは、やり直す」</b>を開いてください。<br>
+「用語集」→「同期する」の下の<b>「うまくいかないとき」</b>を開き、<b>「1台を正にして、やり直す」</b>を押してください。<br>
 <b>① 正にする端末で</b>「この端末の用語集で、同期ファイルを置き換える」。iCloud Driveの同期ファイルが、その端末の内容で丸ごと置き換わります。<br>
 <b>② ほかの端末それぞれで</b>「この端末の用語集を消して、同期ファイルから入れ直す」。その端末の語は全部消えて、同期ファイルの内容になります。<br>
 ②を押す前に、その端末に<b>そこにしか無い語</b>が無いか確かめてください。あるなら、先に「Excelで書き出す」で控えを取り、やり直したあとに読み込み直せば戻せます。</p>
 
+<h3>同期の控えを消してしまいました</h3>
+<p><b>用語集は消えません。</b>端末の中にそのまま残っています。消えたのは、2台をつなぐための控えだけです。<br>
+「同期する」を押すと「同期の控えが見つかりません」と出るので、<b>「ほかの端末と同期する」→①「この端末から始める」</b>で作り直し、
+もう1台で<b>②「もう1台に合わせる」</b>を押してください。それで元通りです。<br>
+消した直後なら、ファイルAppの「最近削除した項目」に30日間残っています。そちらから戻してもかまいません。</p>
+
+<h3>控えはiCloud Driveのどこに置けばいいですか</h3>
+<p>どこでもかまいません。アプリは置き場所を覚えていて、<b>フォルダを作って移しても、名前を変えても、追いかけます</b>。
+消したときだけ、つながりが切れます。<br>
+迷うようでしたら、iCloud Driveのいちばん上に<b>「Lexicon同期」という名前のフォルダ</b>を作り、その中に入れておくのが分かりやすいです。
+ほかのファイルに紛れず、中身が何か名前で分かります。</p>
+
 <h3>本番の直後に同期したい</h3>
-<p>最初の画面の右上、「設定」の下に<b>「同期する」</b>があります。「用語集と辞書」を開かなくても、その場で押せます。
+<p>最初の画面の右上、「設定」の下に<b>「同期する」</b>があります。「用語集」を開かなくても、その場で押せます。
 ブースで足した語がある間は、数字が付きます。</p>
 
 <h3>片方で消すと、もう片方からも消えますか</h3>
@@ -351,10 +391,22 @@ download it, then choose it again.</p>
 assignment does <b>not</b> close a dictionary — the glossary and the dictionaries are separate shelves. A
 finished assignment exported and opened as a dictionary therefore stays searchable after the assignment
 itself is gone.<br>
-To close one: “Glossary &amp; dictionaries” → <b>Dictionaries</b> → the <b>×</b> on its row. The original file
+To close one: Settings → <b>Open and manage dictionaries</b> → the <b>×</b> on its row. The original file
 is untouched.<br>
 Above the search box, a thin rule and the word “Dictionaries” mark where the glossary chips end and the
 dictionary chips begin.</p>
+
+<h3>A big dictionary asks whether to keep it on the device</h3>
+<p>Anything over 150MB is worth a question, because it costs real space. <b>Keep it</b> and it is there the
+moment you open the app. <b>Don’t keep it</b> and the dictionary still works until you close the app; next
+time, choose the folder again.<br>
+If the device is short of room, the app says so instead of asking. Removing a dictionary you no longer use
+from “Kept on this device” frees the space.</p>
+
+<h3>A large EPWING dictionary will not open</h3>
+<p>Zipped, a large dictionary can stall while it unpacks. <b>Choose the two files directly instead:
+<code>CATALOGS</code> in the dictionary folder, and <code>HONMON</code> inside <code>DATA</code>.</b>
+You can select both at once, and nothing has to be unpacked.</p>
 
 <h3>Does updating to a new build erase my glossary?</h3>
 <p>No. Your glossary, dictionaries and settings survive an update, and the sync file is unaffected.<br>
@@ -367,14 +419,38 @@ Sync, before you delete it.</p>
 <p>ChatGPT opens outside the app. Swipe up from the bottom of the screen (or press the Home button) to come
 back to Lexicon, which is still where you left it. You do not have to save the term.</p>
 
+<h3>Do I need a paid ChatGPT account?</h3>
+<p><b>No.</b> The ChatGPT button simply opens ChatGPT with the question already written. A free account is
+enough, and if the ChatGPT app is not installed it opens in Safari.<br>
+You can send lookups to <b>Google, Weblio or DeepL</b> instead, under Settings → External search. None of
+them asks for an account or a payment.<br>
+Your glossary, dictionaries, sync and the Excel import and export have nothing to do with external lookups:
+they all run inside the app.</p>
+
 <h3>Can the answer appear inside the app?</h3>
 <p>Yes, if you put an OpenAI API key under Settings → External search. The key is kept on that device only.</p>
+
+<h3>I am worried about what the API costs</h3>
+<p>First: <b>the API is not ChatGPT Plus.</b> A Plus subscription does not include API access. The API is
+pay-as-you-go against credit you buy in advance from OpenAI.<br>
+Three things keep it in hand.<br>
+<b>① Turn off auto-recharge.</b> It is on by default. With it off, usage stops when the credit you bought runs
+out — that is the real limit.<br>
+<b>② A monthly usage limit resets every month.</b> It caps a month's spending, then the allowance returns, so
+it is not an absolute ceiling.<br>
+<b>③ Purchased credit expires after a year</b>, so buying small amounts as you need them wastes less.<br>
+A single term lookup costs a very small fraction of this. Put in a small amount, turn auto-recharge off, and
+nothing more can be spent.</p>
 
 <h2>Sync and backup</h2>
 
 <h3>How do I use the same glossary on an iPad and an iPhone?</h3>
-<p>Use Sync in “Glossary &amp; dictionaries”, which keeps one file in your iCloud Drive. The first device creates
-the file; the second one chooses it. After that, all you press is Sync, and no device loses anything.</p>
+<p>Press <b>“Sync with your other device”</b> in “Glossary &amp; dictionaries”. It asks one thing: whether this
+is the first device or the second.<br>
+<b>On the first device:</b> “Start from this device”. Its glossary is placed in your iCloud Drive.<br>
+<b>On the second:</b> “Join the other device”. iCloud Drive opens; choose “Lexicon同期”, the one the first
+device made.<br>
+After that, all either device needs is Sync, and neither loses anything.</p>
 
 <h3>I only use one device. Do I need sync?</h3>
 <p>No, but the file makes a good backup for a new device or a reinstall.</p>
@@ -389,13 +465,28 @@ duplicated.</p>
 <h3>The devices have drifted apart and sync will not fix it</h3>
 <p>Adding them together will not fix it, because nothing says which side is correct. <b>Declare one device
 right and fill the others from it.</b><br>
-Open “Glossary &amp; dictionaries” → under Sync, <b>“If they have drifted apart, start over”</b>.<br>
+Open “Glossary” → under Sync, <b>“If something goes wrong”</b>, then <b>“Declare one device
+right and start over”</b>.<br>
 <b>① On the device you are declaring right:</b> “Replace the sync file with this device’s glossary”. The file
 on iCloud Drive is replaced outright.<br>
 <b>② On each of the other devices:</b> “Clear this glossary and take the sync file as it stands”. Everything
 on that device is cleared and replaced.<br>
 Before ②, check whether that device holds anything that lives nowhere else. If it does, export to Excel
 first and read it back in afterwards.</p>
+
+<h3>I deleted the sync copy</h3>
+<p><b>Your glossary is not gone.</b> It is still on the device. What was deleted is only the copy that joins
+your two devices.<br>
+Sync will say “The sync copy is gone”. Make a new one with <b>“Sync with your other device” → ① “Start from
+this device”</b>, then press <b>② “Join the other device”</b> on your other device. That restores things.<br>
+If you deleted it just now, the Files app keeps it under “Recently Deleted” for 30 days, so you can also put
+it back from there.</p>
+
+<h3>Where in iCloud Drive should the copy live?</h3>
+<p>Anywhere. The app remembers where it is: <b>move it into a folder or rename it and it still follows</b>.
+Only deleting it breaks the link.<br>
+If you would rather be told: make a folder called <b>Lexicon同期</b> at the top of iCloud Drive and keep it
+there. It stays out of the way of everything else, and the name says what it is.</p>
 
 <h3>Syncing straight after a job</h3>
 <p><b>Sync</b> sits on the first screen, top right under Settings, so the glossary sheet does not have to be
