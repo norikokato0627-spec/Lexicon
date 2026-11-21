@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ファイルの置き方 — Lexicon for Interpreters</title>
+<style>
+body{max-width:44em;margin:0 auto;padding:40px 20px 80px;
+  font-family:"Helvetica Neue",Helvetica,"Hiragino Sans",Arial,sans-serif;
+  font-size:16px;line-height:1.9;color:#1C1E24;background:#fff}
+h1{font-family:Georgia,"Hiragino Mincho ProN",serif;font-weight:400;font-size:28px;
+  color:#1A2A52;margin:0 0 6px}
+h2{font-size:17px;color:#1A2A52;margin:34px 0 6px;padding-bottom:6px;border-bottom:1px solid #CFD3DA}
+h3{font-size:16px;color:#1A2A52;margin:20px 0 2px}
+h3+p{margin-top:0}
+.date{font-size:13px;color:#6B7280;margin-bottom:24px}
+.lead{margin:0 0 8px}
+ol{list-style:none;counter-reset:step;padding:0;margin:20px 0 0}
+ol li{counter-increment:step;position:relative;padding:0 0 14px 52px;margin:0}
+ol li::before{content:counter(step);position:absolute;left:0;top:2px;
+  width:32px;height:32px;border-radius:50%;background:#1A2A52;color:#fff;
+  font-size:15px;line-height:32px;text-align:center}
+ol li p{margin:0}
+.tip{font-size:14px;color:#6B7280}
+.rule{margin:20px 0;padding:14px 18px;border-left:3px solid #1A2A52;background:#F0F1F3}
+.rule p{margin:0}
+.en{margin-top:60px;padding-top:30px;border-top:2px solid #1A2A52}
+a{color:#1A2A52}
+code{font-family:"SF Mono",Menlo,monospace;font-size:14px}
+@media (prefers-color-scheme:dark){
+  body{background:#111318;color:#E7E9ED} h1,h2,h3{color:#8FA6DA}
+  .date,.tip{color:#9AA1AD} a{color:#8FA6DA} ol li::before{background:#8FA6DA;color:#111318}
+  .rule{background:#191C23;border-left-color:#8FA6DA}
+}
+@media print{ body{font-size:12pt} .en{page-break-before:always} }
+</style>
+</head>
+<body>
+
+<h1>ファイルの置き方</h1>
+<div class="date">Lexicon for Interpreters ／ 2026年11月</div>
+
+<p class="lead">Excelの用語集をどこに置くか。はじめに決めておけば、あとで迷いません。</p>
+
+<h2>まず、これだけ</h2>
+
+<p>Excelを読み込むと、用語はアプリの中に入ります。そこから先、Excelとアプリは別のものです。
+Excelを消しても用語は消えません。Excelを直しても、アプリは変わりません。</p>
+
+<div class="rule">
+<p><b>アプリの中が現役。Excelは控え。</b></p>
+</div>
+
+<h2>置き場所は二つ</h2>
+
+<p><b>Lexicon用語集</b>（iCloud Drive）— アプリが読み書きするファイルを入れます。
+書き出したExcelも、同期のファイルもここに。iPhoneからもiPadからも開けて、控えにもなります。</p>
+
+<p class="tip">ファイル名の最後に年月を付けておくと、数が増えたときに整理しやすくなります
+（〇〇会議 2611）。</p>
+
+<p><b>これまでの用語集</b> — いまの場所のまま、触りません。</p>
+
+<p>分けるのは、書き出しが上書きだからです。同じ場所に並べていると、取り違えて
+昔の用語集に上書きしてしまうことがあります。</p>
+
+<h2>四つの決めごと</h2>
+
+<ol>
+<li><p><b>読み込むのは、一台から一度だけ。</b>あとは同期に任せます。二台で同じファイルを読むと、
+同じ語が二つ並びます。</p></li>
+<li><p><b>本番で足した語は、アプリの中にあります。</b>Excelには戻りません。</p></li>
+<li><p><b>終わったら書き出して、同じファイルに上書き。</b>そこにあるのは、いつでも最後の控えです。</p></li>
+<li><p><b>同期のファイルも同じフォルダに。</b><code>Lexicon同期.json</code> はアプリが使うものです。
+開いたり、動かしたり、名前を変えたりしないでください。</p></li>
+</ol>
+
+<h2>案件が終わったら</h2>
+
+<p>案件ごとに作って、終わったら一つに畳む。こうすると用語集は散らばらずに育ちます。</p>
+
+<p><b>先に書き出します。</b>これが記録になります。共通に移したあとでは、どの語がその案件のものだったか
+分かりません。</p>
+
+<p><b>次に案件を削除し、語を残して案件名だけ外します。</b>語は共通になり、いつでも引けます。</p>
+
+<h2>昔の用語集を入れるとき</h2>
+
+<p><b>複製を作って</b>Lexicon用語集に移します。</p>
+
+<p>読まれるのは<b>見出し語・訳語・用例の三列だけ</b>です。</p>
+
+<h2>よくある迷い</h2>
+
+<h3>読み込んだExcelを消してしまいました</h3>
+<p>用語はアプリの中にあります。心配でしたら、いま書き出してください。</p>
+
+<h3>Excelを直したのに、アプリに出ません</h3>
+<p>読み込んだ時点で切れています。アプリの中で直すのが早道です。</p>
+
+<h3>二台で同じファイルを読み込みました</h3>
+<p>同じ語が二つ並びます。気づいたときに片方を消してください。</p>
+
+<h3>どちらが新しいか分からなくなりました</h3>
+<p>アプリのほうです。書き出して上書きしてください。</p>
+
+<h3>iCloudを使っていません</h3>
+<p>同期は使えませんが、アプリは動きます。控えが端末の中だけになるので、
+ときどき書き出して、別の場所にも残してください。</p>
+
+<h2>困ったとき</h2>
+<p><a href="https://norikokato0627-spec.github.io/Lexicon/faq.html">よくある質問</a>、
+<a href="https://norikokato0627-spec.github.io/Lexicon/start.html">はじめの10ステップ</a>もご覧ください。
+解決しない場合は <a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a> まで。</p>
+
+<div class="en">
+<h1>Where to keep your files</h1>
+<div class="date">Lexicon for Interpreters — November 2026</div>
+
+<p class="lead">Where to keep your Excel glossaries. Settle it at the start and you need not think
+about it again.</p>
+
+<h2>The one thing to know</h2>
+
+<p>When you import an Excel file, the terms go into the app. From then on the file and the app are
+two separate things. Delete the file and your terms are still there. Edit the file and the app does
+not change.</p>
+
+<div class="rule">
+<p><b>The app holds the live copy. Excel holds the record.</b></p>
+</div>
+
+<h2>Two places</h2>
+
+<p><b>Lexicon glossaries</b> (iCloud Drive) — the files the app reads and writes: your exports and
+the sync file both live here. Reachable from your iPhone and your iPad, and a backup besides.</p>
+
+<p class="tip">Ending the file name with the year and month — Annual Conference 2611, for
+November 2026 — keeps a growing collection in order.</p>
+
+<p><b>Your older glossaries</b> — left where they are, untouched.</p>
+
+<p>They are kept apart because exporting overwrites. Side by side, it is easy to pick the wrong file
+and write over years of work.</p>
+
+<h2>Four rules</h2>
+
+<ol>
+<li><p><b>Import once, from one device.</b> Let sync carry it to the other. Import the same file on
+both and every term appears twice.</p></li>
+<li><p><b>Terms added during a job live in the app.</b> They do not travel back into Excel.</p></li>
+<li><p><b>When the job ends, export over the same file.</b> What sits there is always your latest
+record.</p></li>
+<li><p><b>Keep the sync file in the same folder.</b> <code>Lexicon同期.json</code> belongs to the
+app: don't open it, move it or rename it.</p></li>
+</ol>
+
+<h2>When a job is over</h2>
+
+<p>Build a glossary for each job and fold it into the whole when the job is done. That way your
+glossary grows instead of scattering.</p>
+
+<p><b>Export first.</b> That file is the record. Once the terms are folded in, there is no telling
+which job they came from.</p>
+
+<p><b>Then delete the assignment, keeping the terms.</b> They stay in your glossary with no
+assignment against them, and are found whenever you look.</p>
+
+<h2>Bringing an older glossary in</h2>
+
+<p><b>Work on a copy</b> in your Lexicon glossaries folder.</p>
+
+<p>Only <b>three columns</b> are read: the headword, the translation and an example.</p>
+
+<h2>Where people get stuck</h2>
+
+<h3>I deleted the Excel file I imported</h3>
+<p>The terms are in the app. Export now if you would like a fresh record.</p>
+
+<h3>I edited the Excel file and the app hasn't changed</h3>
+<p>The two parted company when you imported. Editing in the app is quicker.</p>
+
+<h3>I imported the same file on both devices</h3>
+<p>Every term appears twice. Delete one of each as you come across them.</p>
+
+<h3>I've lost track of which copy is newer</h3>
+<p>The app is. Export from it and overwrite.</p>
+
+<h3>I don't use iCloud</h3>
+<p>Sync won't be available, but the app works normally. Your only record is then on one device, so
+export from time to time and keep a copy somewhere else.</p>
+
+<h2>If you get stuck</h2>
+<p>See the <a href="https://norikokato0627-spec.github.io/Lexicon/faq.html">questions and answers</a>
+and <a href="https://norikokato0627-spec.github.io/Lexicon/start.html">Ten steps to get started</a>,
+or write to <a href="mailto:lexicon.support2026@gmail.com">lexicon.support2026@gmail.com</a>.</p>
+</div>
+
+</body>
+</html>
