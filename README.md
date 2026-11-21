@@ -49,6 +49,12 @@ As the app is developed by one person, replies may take a few days.
 
 [はじめの10ステップ / Ten steps to get started](https://norikokato0627-spec.github.io/Lexicon/start.html)
 
+## ファイルの置き方 / Where to keep your files
+
+Excelの用語集をどこに置くか。読み込んだあとExcelはどうなるか、案件が終わったらどう畳むか。
+
+[ファイルの置き方 / Where to keep your files](https://norikokato0627-spec.github.io/Lexicon/files.html)
+
 ## よくある質問 / Questions and answers
 
 用語集の入れ方、「すべて」と「共通」の違い、同期、ChatGPTの使い方など。
